@@ -3,8 +3,9 @@ Unit.fm hand-crafted build system ⚙️
 
 Commands:
   init      Install Python dependencies with pipenv
-  serve     Run app in dev environment.
   test      Run linters, test db migrations and tests.
+  serve     Run app in dev environment.
+  deploy    Deploy to heroku.
 endef
 
 export USAGE
@@ -22,3 +23,6 @@ test:
 
 serve:
 	pipenv run adev runserver unitfm/main.py
+
+deploy:
+	git push heroku master
