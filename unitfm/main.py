@@ -6,35 +6,42 @@ import xml.etree.ElementTree as ET
 gh_user = os.environ.get('GITHUB_USER', None)
 gh_token = os.environ.get('GITHUB_TOKEN', None)
 
-async def handle(request):
-    name = request.match_info.get('name', "Anonymous")
-    text = 'Hello, {}'.format(name)
-    return web.Response(text=text)
+
+async def index(request):
+    return web.Response(text='Hello, world!')
 
 
-async def update_commit_status(owner, repo, sha):
+async def update_commit_status(owner, repo, sha, success):
     auth = aiohttp.BasicAuth(gh_user, gh_token)
     async with aiohttp.ClientSession(auth=auth) as session:
         url = 'https://api.github.com/repos/{}/{}/statuses/{}'.format(owner, repo, sha)
-        data = {'state': 'pending', 'target_url': 'http://localhost:8000/', 'context': 'test/unit'}
+        data = {
+            'state': 'success' if success else 'failure',
+            'target_url': 'http://localhost:8000/{}/{}/commit/{}'.format(owner, repo, sha),
+            'context': 'test/unit'
+        }
         async with session.post(url, json=data) as response:
             response.raise_for_status()
 
-async def post_junit(request):
-    junit = ET.parse('pytest.xml').getroot()
-    page = 'Errors: {}'.format(junit.get('errors'))
 
-    owner = request.match_info.get('owner', None)
-    repo = request.match_info.get('repo', None)
-    commit_sha = request.match_info.get('sha', None)
-    await update_commit_status(owner, repo, commit_sha)
+async def post_junit(request):
+    # Process junit file
+    junit = ET.parse('pytest.xml').getroot()
+    failures = int(junit.get('failures'))
+    success = failures == 0
+
+    # Update commit status
+    owner = request.match_info.get('owner')
+    repo = request.match_info.get('repo')
+    commit_sha = request.match_info.get('sha')
+    await update_commit_status(owner, repo, commit_sha, success)
 
     return web.Response(status=201)
 
 
 def app():
     app_ = web.Application()
-    app_.router.add_get('/', handle)
+    app_.router.add_get('/', index)
     app_.router.add_post('/{owner}/{repo}/commit/{sha}', post_junit)
     return app_
 
