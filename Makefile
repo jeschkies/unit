@@ -16,9 +16,9 @@ init:
 	pipenv install --dev --skip-lock
 
 test:
-	pipenv run yapf -irp unit tests
-	pipenv run flake8 --max-line-length=100 unit tests
+	pipenv run yapf -irp unitfm tests
+	pipenv run flake8 --max-line-length=100 unitfm tests
 	pipenv run pytest --cov-config .coveragerc --cov unitfm --cov-report term
 
 serve:
-	pipenv run python unit/main.py
+	pipenv run python unitfm/main.py

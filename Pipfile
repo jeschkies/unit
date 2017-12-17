@@ -16,6 +16,7 @@ yapf = "*"
 "flake8" = "*"
 pytest-aiohttp = "*"
 pytest-cov = "*"
+"e1839a8" = {path = ".", editable = true}
 
 
 [requires]
