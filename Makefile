@@ -6,6 +6,7 @@ Commands:
   test      Run linters, test db migrations and tests.
   serve     Run app in dev environment.
   deploy    Deploy to heroku.
+  report    Report own unit tests results to Github.
 endef
 
 export USAGE
@@ -26,3 +27,6 @@ serve:
 
 deploy:
 	git push heroku master
+
+report:
+	curl -X POST -d "@pytest.xml" "https://unitfm.herokuapp.com//jeschkies/unit/commit/$$TRAVIS_COMMIT?secret=$$UNITFM_SECRET"
