@@ -12,3 +12,8 @@ async def test_index(cli):
     response = await cli.get('/')
     assert response.status == 200
     assert await response.text() == 'Hello, world!'
+
+
+async def test_rejection(cli):
+    response = await cli.post('/jeschkies/unit/commit/deadbeef?secret=incorrect')
+    assert response.status == 403
