@@ -6,6 +6,9 @@ import xml.etree.ElementTree as ET
 gh_user = os.environ.get('GITHUB_USER', None)
 gh_token = os.environ.get('GITHUB_TOKEN', None)
 
+# API Secret to start dogfooding.
+unitfm_secret = os.environ.get('UNITFM_SECRET', None)
+
 
 async def index(request):
     return web.Response(text='Hello, world!')
@@ -25,6 +28,11 @@ async def update_commit_status(owner, repo, sha, success):
 
 
 async def post_junit(request):
+    # Check if call is authorized
+    provided_secret = request.query.get('secret')
+    if provided_secret != unitfm_secret:
+        return web.Response(status=403)
+
     # Process junit file
     body = await request.text()  # TODO: Parse with streaming.
     junit = ET.fromstring(body)
