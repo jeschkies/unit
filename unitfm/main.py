@@ -26,7 +26,8 @@ async def update_commit_status(owner, repo, sha, success):
 
 async def post_junit(request):
     # Process junit file
-    junit = ET.parse('pytest.xml').getroot()
+    body = await request.text()  # TODO: Parse with streaming.
+    junit = ET.fromstring(body)
     failures = int(junit.get('failures'))
     success = failures == 0
 
