@@ -1,4 +1,24 @@
 {% extends "layout.html" %}
 {% block body %}
-<div>{{ failures }}</div>
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <h1>{{ owner}}/{{ repo }}</h1>
+            <div>Failures: {{ failures }}</div>
+            <div>Tests: {{ tests_count }}</div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <h2>Test cases</h2>
+            <ul>
+            {% for case in testcases %}
+              <li>{{ case }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+</div>
 {% endblock %}

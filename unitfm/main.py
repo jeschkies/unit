@@ -12,8 +12,9 @@ gh_token = os.environ.get('GITHUB_TOKEN', None)
 unitfm_secret = os.environ.get('UNITFM_SECRET', None)
 
 
+@aiohttp_jinja2.template('index.html')
 async def index(request):
-    return web.Response(text='Hello, world!')
+    return {'name': 'world'}
 
 
 async def update_commit_status(owner, repo, sha, success):
@@ -33,13 +34,19 @@ async def update_commit_status(owner, repo, sha, success):
 async def view_junit(request):
     owner = request.match_info.get('owner')
     repo = request.match_info.get('repo')
-    commit_sha = request.match_info.get('sha')
+    # commit_sha = request.match_info.get('sha')
 
     # TODO: load correct junit xml
     junit = ET.parse('pytest.xml').getroot()
     failures = int(junit.get('failures'))
+    tests = int(junit.get('tests'))
 
-    return {'failures': failures}
+    testsuite = next(junit.iter('testsuite'))
+    testcases = (case.get('name') for case in testsuite.iter('testcase'))
+
+    return {'owner': owner, 'repo': repo, 'failures': failures, 'tests_count':
+            tests, 'testcases': testcases}
+
 
 async def post_junit(request):
     # Check if call is authorized

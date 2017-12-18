@@ -11,7 +11,6 @@ def cli(loop, test_client):
 async def test_index(cli):
     response = await cli.get('/')
     assert response.status == 200
-    assert await response.text() == 'Hello, world!'
 
 
 async def test_rejection(cli):
