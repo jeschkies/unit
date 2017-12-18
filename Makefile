@@ -29,4 +29,4 @@ deploy:
 	git push heroku master
 
 report:
-	curl -X POST -d "@pytest.xml" "https://unitfm.herokuapp.com/jeschkies/unit/commit/$(TRAVIS_COMMIT)?secret=$(UNITFM_SECRET)"
+	curl -X POST -d "@pytest.xml" "http://www.unit.fm/jeschkies/unit/commit/$(TRAVIS_COMMIT)?secret=$(UNITFM_SECRET)"

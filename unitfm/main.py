@@ -20,7 +20,7 @@ async def update_commit_status(owner, repo, sha, success):
         url = 'https://api.github.com/repos/{}/{}/statuses/{}'.format(owner, repo, sha)
         data = {
             'state': 'success' if success else 'failure',
-            'target_url': 'http://localhost:8000/{}/{}/commit/{}'.format(owner, repo, sha),
+            'target_url': 'http://www.unit.fm/{}/{}/commit/{}'.format(owner, repo, sha),
             'context': 'test/unit'
         }
         async with session.post(url, json=data) as response:
