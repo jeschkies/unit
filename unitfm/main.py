@@ -37,15 +37,27 @@ async def view_junit(request):
     # commit_sha = request.match_info.get('sha')
 
     # TODO: load correct junit xml
-    junit = ET.parse('pytest.xml').getroot()
+    junit = ET.parse('pytest_with_error.xml').getroot()
     failures = int(junit.get('failures'))
     tests = int(junit.get('tests'))
 
-    testsuite = next(junit.iter('testsuite'))
-    testcases = (case.get('name') for case in testsuite.iter('testcase'))
+    def process_testcase(case):
+        failures = list(case.iter('failure'))
+        failure_text = '/n'.join(failure.text for failure in failures)
+        failure_message = '/n'.join(failure.get('message') for failure in failures)
+        return {'name': case.get('name'), 'passed': len(failures) == 0,
+                'failure_text': failure_text, 'failure_message': failure_message}
 
-    return {'owner': owner, 'repo': repo, 'failures': failures, 'tests_count':
-            tests, 'testcases': testcases}
+    testsuite = next(junit.iter('testsuite'))
+    testcases = (process_testcase(case) for case in testsuite.iter('testcase'))
+
+    return {
+        'owner': owner,
+        'repo': repo,
+        'failures': failures,
+        'tests_count': tests,
+        'testcases': testcases
+    }
 
 
 async def post_junit(request):

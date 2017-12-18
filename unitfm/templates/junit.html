@@ -3,7 +3,7 @@
 <div class="container">
     <div class="row">
         <div class="col">
-            <h1>{{ owner}}/{{ repo }}</h1>
+            <h1>{{ owner|e }}/{{ repo|e }}</h1>
             <div>Failures: {{ failures }}</div>
             <div>Tests: {{ tests_count }}</div>
         </div>
@@ -14,7 +14,14 @@
             <h2>Test cases</h2>
             <ul>
             {% for case in testcases %}
-              <li>{{ case }}</li>
+              {% if case.passed %}
+                <li><span class="badge badge-success">Passed</span> {{ case.name|e }}</li>
+              {% else %}
+                <li>
+                    <span class="badge badge-danger">Failed</span> {{ case.name|e }}
+                    <pre><code>{{ case.failure_text|e }}</code></pre>
+                </li>
+              {% endif %}
             {% endfor %}
             </ul>
         </div>
