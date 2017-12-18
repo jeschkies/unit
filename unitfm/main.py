@@ -34,10 +34,13 @@ async def update_commit_status(owner, repo, sha, success):
 async def view_junit(request):
     owner = request.match_info.get('owner')
     repo = request.match_info.get('repo')
-    # commit_sha = request.match_info.get('sha')
+    commit_sha = request.match_info.get('sha')
 
-    # TODO: load correct junit xml
-    junit = ET.parse('pytest_with_error.xml').getroot()
+    # Get junit file
+    # TODO: use proper datastore
+    raw_junit = request.app['junits'][commit_sha]
+
+    junit = ET.fromstring(raw_junit)
     failures = int(junit.get('failures'))
     tests = int(junit.get('tests'))
 
@@ -66,16 +69,21 @@ async def post_junit(request):
     if provided_secret != unitfm_secret:
         return web.Response(status=403)
 
+    owner = request.match_info.get('owner')
+    repo = request.match_info.get('repo')
+    commit_sha = request.match_info.get('sha')
+
     # Process junit file
     body = await request.text()  # TODO: Parse with streaming.
     junit = ET.fromstring(body)
     failures = int(junit.get('failures'))
     success = failures == 0
 
+    # Save junit file
+    # TODO: use proper datastore
+    request.app['junits'][commit_sha] = body
+
     # Update commit status
-    owner = request.match_info.get('owner')
-    repo = request.match_info.get('repo')
-    commit_sha = request.match_info.get('sha')
     await update_commit_status(owner, repo, commit_sha, success)
 
     return web.Response(status=201)
@@ -88,6 +96,10 @@ def app():
     app_.router.add_get('/{owner}/{repo}/commit/{sha}', view_junit)
 
     aiohttp_jinja2.setup(app_, loader=jinja2.PackageLoader('unitfm', 'templates'))
+
+    # TODO: Save junit files in datastore
+    # And don't forget to escape ;)
+    app_['junits'] = dict()
 
     return app_
 
