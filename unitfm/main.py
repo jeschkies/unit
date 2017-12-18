@@ -1,7 +1,9 @@
 import aiohttp
+import aiohttp_jinja2
+import jinja2
 import os
-from aiohttp import web
 import xml.etree.ElementTree as ET
+from aiohttp import web
 
 gh_user = os.environ.get('GITHUB_USER', None)
 gh_token = os.environ.get('GITHUB_TOKEN', None)
@@ -26,6 +28,18 @@ async def update_commit_status(owner, repo, sha, success):
         async with session.post(url, json=data) as response:
             response.raise_for_status()
 
+
+@aiohttp_jinja2.template('junit.html')
+async def view_junit(request):
+    owner = request.match_info.get('owner')
+    repo = request.match_info.get('repo')
+    commit_sha = request.match_info.get('sha')
+
+    # TODO: load correct junit xml
+    junit = ET.parse('pytest.xml').getroot()
+    failures = int(junit.get('failures'))
+
+    return {'failures': failures}
 
 async def post_junit(request):
     # Check if call is authorized
@@ -52,6 +66,10 @@ def app():
     app_ = web.Application()
     app_.router.add_get('/', index)
     app_.router.add_post('/{owner}/{repo}/commit/{sha}', post_junit)
+    app_.router.add_get('/{owner}/{repo}/commit/{sha}', view_junit)
+
+    aiohttp_jinja2.setup(app_, loader=jinja2.PackageLoader('unitfm', 'templates'))
+
     return app_
 
 
