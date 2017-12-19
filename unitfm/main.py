@@ -5,19 +5,13 @@ import os
 import xml.etree.ElementTree as ET
 from aiohttp import web
 
-gh_user = os.environ.get('GITHUB_USER', None)
-gh_token = os.environ.get('GITHUB_TOKEN', None)
-
-# API Secret to start dogfooding.
-unitfm_secret = os.environ.get('UNITFM_SECRET', None)
-
 
 @aiohttp_jinja2.template('index.html')
 async def index(request):
     return {'name': 'world'}
 
 
-async def update_commit_status(owner, repo, sha, success):
+async def update_commit_status(owner, repo, sha, success, gh_user, gh_token):
     auth = aiohttp.BasicAuth(gh_user, gh_token)
     async with aiohttp.ClientSession(auth=auth) as session:
         url = 'https://api.github.com/repos/{}/{}/statuses/{}'.format(owner, repo, sha)
@@ -38,6 +32,10 @@ async def view_junit(request):
 
     # Get junit file
     # TODO: use proper datastore
+    if commit_sha not in request.app['junits']:
+        error = 'No unit file for commit {} found in project {}/{}'.format(commit_sha, owner, repo)
+        raise web.HTTPNotFound(text=error)
+
     raw_junit = request.app['junits'][commit_sha]
 
     junit = ET.fromstring(raw_junit)
@@ -48,8 +46,12 @@ async def view_junit(request):
         failures = list(case.iter('failure'))
         failure_text = '/n'.join(failure.text for failure in failures)
         failure_message = '/n'.join(failure.get('message') for failure in failures)
-        return {'name': case.get('name'), 'passed': len(failures) == 0,
-                'failure_text': failure_text, 'failure_message': failure_message}
+        return {
+            'name': case.get('name'),
+            'passed': len(failures) == 0,
+            'failure_text': failure_text,
+            'failure_message': failure_message
+        }
 
     testsuite = next(junit.iter('testsuite'))
     testcases = (process_testcase(case) for case in testsuite.iter('testcase'))
@@ -66,7 +68,7 @@ async def view_junit(request):
 async def post_junit(request):
     # Check if call is authorized
     provided_secret = request.query.get('secret')
-    if provided_secret != unitfm_secret:
+    if provided_secret != request.app['unitfm_secret']:
         return web.Response(status=403)
 
     owner = request.match_info.get('owner')
@@ -75,7 +77,12 @@ async def post_junit(request):
 
     # Process junit file
     body = await request.text()  # TODO: Parse with streaming.
-    junit = ET.fromstring(body)
+    try:
+        junit = ET.fromstring(body)
+    except ET.ParseError as e:
+        error = 'Could not parse junit file: {}'.format(e)
+        return web.Response(status=400, text=error)
+
     failures = int(junit.get('failures'))
     success = failures == 0
 
@@ -84,13 +91,22 @@ async def post_junit(request):
     request.app['junits'][commit_sha] = body
 
     # Update commit status
-    await update_commit_status(owner, repo, commit_sha, success)
+    await update_commit_status(owner, repo, commit_sha, success, request['gh_user'],
+                               request['gh_token'])
 
     return web.Response(status=201)
 
 
 def app():
     app_ = web.Application()
+
+    app_['gh_user'] = os.environ.get('GITHUB_USER', None)
+    app_['gh_token'] = os.environ.get('GITHUB_TOKEN', None)
+
+    # API Secret to start dogfooding.
+    app_['unitfm_secret'] = os.environ.get('UNITFM_SECRET', None)
+
+    # Register routes
     app_.router.add_get('/', index)
     app_.router.add_post('/{owner}/{repo}/commit/{sha}', post_junit)
     app_.router.add_get('/{owner}/{repo}/commit/{sha}', view_junit)
