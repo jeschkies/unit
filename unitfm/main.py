@@ -91,8 +91,8 @@ async def post_junit(request):
     request.app['junits'][commit_sha] = body
 
     # Update commit status
-    await update_commit_status(owner, repo, commit_sha, success, request['gh_user'],
-                               request['gh_token'])
+    await update_commit_status(owner, repo, commit_sha, success, request.app['gh_user'],
+                               request.app['gh_token'])
 
     return web.Response(status=201)
 
