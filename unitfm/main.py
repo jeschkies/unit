@@ -1,17 +1,21 @@
+"""Definition of unit.fm app."""
 import aiohttp
 import aiohttp_jinja2
 import jinja2
 import os
 import xml.etree.ElementTree as ET
 from aiohttp import web
+from .file_store import FileStore
 
 
 @aiohttp_jinja2.template('index.html')
 async def index(request):
+    """Index of unit.fm."""
     return {'name': 'world'}
 
 
 async def update_commit_status(owner, repo, sha, success, gh_user, gh_token):
+    """Call Github api and set commit status."""
     auth = aiohttp.BasicAuth(gh_user, gh_token)
     async with aiohttp.ClientSession(auth=auth) as session:
         url = 'https://api.github.com/repos/{}/{}/statuses/{}'.format(owner, repo, sha)
@@ -26,18 +30,18 @@ async def update_commit_status(owner, repo, sha, success, gh_user, gh_token):
 
 @aiohttp_jinja2.template('junit.html')
 async def view_junit(request):
+    """View junit report."""
     owner = request.match_info.get('owner')
     repo = request.match_info.get('repo')
     commit_sha = request.match_info.get('sha')
 
     # Get junit file
-    # TODO: use proper datastore
-    if commit_sha not in request.app['junits']:
+    raw_junit = request.app['junits'].get(owner, repo, commit_sha)
+    if raw_junit is None:
         error = 'No unit file for commit {} found in project {}/{}'.format(commit_sha, owner, repo)
         raise web.HTTPNotFound(text=error)
 
-    raw_junit = request.app['junits'][commit_sha]
-
+    # Parse junit file
     junit = ET.fromstring(raw_junit)
     failures = int(junit.get('failures'))
     tests = int(junit.get('tests'))
@@ -66,6 +70,7 @@ async def view_junit(request):
 
 
 async def post_junit(request):
+    """Post junit report."""
     # Check if call is authorized
     provided_secret = request.query.get('secret')
     if provided_secret != request.app['unitfm_secret']:
@@ -83,12 +88,15 @@ async def post_junit(request):
         error = 'Could not parse junit file: {}'.format(e)
         return web.Response(status=400, text=error)
 
-    failures = int(junit.get('failures'))
+    failures = int(junit.get('failures', 0))
     success = failures == 0
 
     # Save junit file
-    # TODO: use proper datastore
-    request.app['junits'][commit_sha] = body
+    try:
+        request.app['junits'].store(owner, repo, commit_sha, body)
+    except FileNotFoundError:
+        error = 'Project {}/{} does not exist.'.format(owner, repo)
+        return web.Response(status=404, text=error)
 
     # Update commit status
     await update_commit_status(owner, repo, commit_sha, success, request.app['gh_user'],
@@ -98,6 +106,7 @@ async def post_junit(request):
 
 
 def app():
+    """Create and return aiohttp app."""
     app_ = web.Application()
 
     app_['gh_user'] = os.environ.get('GITHUB_USER', None)
@@ -113,16 +122,12 @@ def app():
 
     aiohttp_jinja2.setup(app_, loader=jinja2.PackageLoader('unitfm', 'templates'))
 
-    # TODO: Save junit files in datastore
+    # TODO: Decide on storage based on configuration.
     # And don't forget to escape ;)
-    app_['junits'] = dict()
+    app_['junits'] = FileStore('./tests/fixtures')
 
     return app_
 
 
-def main():
-    web.run_app(app())
-
-
 if __name__ == '__main__':
-    main()
+    web.run_app(app())

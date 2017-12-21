@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?><testsuite errors="0" failures="1" name="pytest" skips="0" tests="3" time="0.328"><testcase classname="tests.test_app" file="tests/test_app.py" line="10" name="test_index[pyloop]" time="0.06121206283569336"></testcase><testcase classname="tests.test_app" file="tests/test_app.py" line="15" name="test_rejection[pyloop]" time="0.023204565048217773"></testcase><testcase classname="tests.test_app" file="tests/test_app.py" line="20" name="test_junit_not_found[pyloop]" time="0.03633594512939453"><failure message="AssertionError: assert 500 == 404
+ +  where 500 = &lt;ClientResponse(http://127.0.0.1:57329/jeschkies/unit/commit/unknown) [500 Internal Server Error]&gt;\n&lt;CIMultiDictProxy(&apos;...Length&apos;: &apos;141&apos;, &apos;Date&apos;: &apos;Tue, 19 Dec 2017 18:49:51 GMT&apos;, &apos;Server&apos;: &apos;Python/3.6 aiohttp/2.3.6&apos;, &apos;Connection&apos;: &apos;close&apos;)&gt;\n.status">cli = &lt;aiohttp.test_utils.TestClient object at 0x10ffdd4a8&gt;
+
+    async def test_junit_not_found(cli):
+        response = await cli.get(&apos;/jeschkies/unit/commit/unknown&apos;)
+&gt;       assert response.status == 404
+E       AssertionError: assert 500 == 404
+E        +  where 500 = &lt;ClientResponse(http://127.0.0.1:57329/jeschkies/unit/commit/unknown) [500 Internal Server Error]&gt;\n&lt;CIMultiDictProxy(&apos;...Length&apos;: &apos;141&apos;, &apos;Date&apos;: &apos;Tue, 19 Dec 2017 18:49:51 GMT&apos;, &apos;Server&apos;: &apos;Python/3.6 aiohttp/2.3.6&apos;, &apos;Connection&apos;: &apos;close&apos;)&gt;\n.status
+
+tests/test_app.py:23: AssertionError</failure><system-err>web_protocol.py            352 ERROR    Error handling request
+Traceback (most recent call last):
+  File &quot;/Users/karsten/.local/share/virtualenvs/unit-fFY_xGcI/lib/python3.6/site-packages/aiohttp/web_protocol.py&quot;, line 410, in start
+    resp = yield from self._request_handler(request)
+  File &quot;/Users/karsten/.local/share/virtualenvs/unit-fFY_xGcI/lib/python3.6/site-packages/aiohttp/web.py&quot;, line 325, in _handle
+    resp = yield from handler(request)
+  File &quot;/Users/karsten/.local/share/virtualenvs/unit-fFY_xGcI/lib/python3.6/site-packages/aiohttp/web_middlewares.py&quot;, line 93, in impl
+    return (yield from handler(request))
+  File &quot;/Users/karsten/.local/share/virtualenvs/unit-fFY_xGcI/lib/python3.6/site-packages/aiohttp_jinja2/__init__.py&quot;, line 88, in wrapped
+    context = yield from coro(*args)
+  File &quot;/Users/karsten/Documents/unit/unitfm/main.py&quot;, line 41, in view_junit
+    raw_junit = request.app[&apos;junits&apos;][commit_sha]
+KeyError: &apos;unknown&apos;
+</system-err></testcase></testsuite>
