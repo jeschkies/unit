@@ -32,6 +32,15 @@ async def test_bad_request(cli):
     assert await response.text() == 'Could not parse junit file: unclosed token: line 1, column 38'
 
 
+async def test_project_not_found(cli):
+    """Verify that posting to and unknown repository returns 404 instead of 500."""
+    cli.server.app['unitfm_secret'] = 'super'
+    data = '<?xml version="1.0" encoding="utf-8"?><testsuite errors="0" failures="0"></testsuite>'
+    response = await cli.post('/jeschkies/unit/commit/deadbeef?secret=super', data=data)
+    assert response.status == 404
+    assert await response.text() == 'Project jeschkies/unit does not exist.'
+
+
 async def test_junit_not_found(cli):
     """Verify that unkown junit report requests return 404 instead of 500."""
     response = await cli.get('/jeschkies/unit/commit/unknown')
