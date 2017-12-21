@@ -1,3 +1,4 @@
+"""Definition of unit.fm app."""
 import aiohttp
 import aiohttp_jinja2
 import jinja2
@@ -8,16 +9,18 @@ from aiohttp import web
 
 @aiohttp_jinja2.template('index.html')
 async def index(request):
+    """Index of unit.fm."""
     return {'name': 'world'}
 
 
 async def update_commit_status(owner, repo, sha, success, gh_user, gh_token):
+    """Call Github api and set commit status."""
     auth = aiohttp.BasicAuth(gh_user, gh_token)
     async with aiohttp.ClientSession(auth=auth) as session:
-        url = 'https://api.github.com/repos/{}/{}/statuses/{}'.format(owner, repo, sha)
+        url = f'https://api.github.com/repos/{owner}/{repo}/statuses/{sha}'
         data = {
             'state': 'success' if success else 'failure',
-            'target_url': 'http://www.unit.fm/{}/{}/commit/{}'.format(owner, repo, sha),
+            'target_url': f'http://www.unit.fm/{owner}/{repo}/commit/{sha}',
             'context': 'test/unit'
         }
         async with session.post(url, json=data) as response:
@@ -26,6 +29,7 @@ async def update_commit_status(owner, repo, sha, success, gh_user, gh_token):
 
 @aiohttp_jinja2.template('junit.html')
 async def view_junit(request):
+    """View junit report."""
     owner = request.match_info.get('owner')
     repo = request.match_info.get('repo')
     commit_sha = request.match_info.get('sha')
@@ -33,7 +37,7 @@ async def view_junit(request):
     # Get junit file
     # TODO: use proper datastore
     if commit_sha not in request.app['junits']:
-        error = 'No unit file for commit {} found in project {}/{}'.format(commit_sha, owner, repo)
+        error = f'No unit file for commit {commit_sha} found in project {owner}/{commit_sha}'
         raise web.HTTPNotFound(text=error)
 
     raw_junit = request.app['junits'][commit_sha]
@@ -66,6 +70,7 @@ async def view_junit(request):
 
 
 async def post_junit(request):
+    """Post junit report."""
     # Check if call is authorized
     provided_secret = request.query.get('secret')
     if provided_secret != request.app['unitfm_secret']:
@@ -98,6 +103,7 @@ async def post_junit(request):
 
 
 def app():
+    """Create and return aiohttp app."""
     app_ = web.Application()
 
     app_['gh_user'] = os.environ.get('GITHUB_USER', None)
@@ -120,9 +126,5 @@ def app():
     return app_
 
 
-def main():
-    web.run_app(app())
-
-
 if __name__ == '__main__':
-    main()
+    web.run_app(app())

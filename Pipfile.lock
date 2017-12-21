@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "1ed8b53c3472fd64ef68199d1f4a406a32e4d8103a25cbdc15dc39bb0f848c3e"
+            "sha256": "78622f6c7ee42bd17fc8963cf93b53f9a81c297ae730b080c82238d883a5c846"
         },
         "host-environment-markers": {
             "implementation_name": "cpython",
@@ -276,6 +276,20 @@
             ],
             "version": "==3.5.0"
         },
+        "flake8-docstrings": {
+            "hashes": [
+                "sha256:62992d5b452e940837ad42905baf09efcd6199813f8657391893414be8db463a",
+                "sha256:0d2a7c12e57db7bef56f820d0294bed7a577a18609246f70d223bc1bdccc185c"
+            ],
+            "version": "==1.1.0"
+        },
+        "flake8-polyfill": {
+            "hashes": [
+                "sha256:da3d14a829cb1ec6377b2065e3f3892cf64b81a24ad15bbdf003c7bfee01723f",
+                "sha256:c77056b1e2cfce7b39d7634370062baf02438962a7d176ea717627b83b17f609"
+            ],
+            "version": "==1.0.1"
+        },
         "isort": {
             "hashes": [
                 "sha256:cd5d3fc2c16006b567a17193edf4ed9830d9454cbeb5a42ac80b36ea00c23db4",
@@ -350,6 +364,14 @@
             ],
             "version": "==2.3.1"
         },
+        "pydocstyle": {
+            "hashes": [
+                "sha256:08a870edc94508264ed90510db466c6357c7192e0e866561d740624a8fc7d90c",
+                "sha256:af9fcccb303899b83bec82dc9a1d56c60fc369973223a5e80c3dfa9bdf984405",
+                "sha256:4d5bcde961107873bae621f3d580c3e35a426d3687ffc6f8fb356f6628da5a97"
+            ],
+            "version": "==2.1.1"
+        },
         "pyflakes": {
             "hashes": [
                 "sha256:08bd6a50edf8cffa9fa09a463063c425ecaaf10d1eb0335a7e8b1401aef89e6f",
@@ -384,6 +406,13 @@
                 "sha256:70e8a77beed4562e7f14fe23a786b54f6296e34344c23bc42f07b15018ff98e9"
             ],
             "version": "==1.11.0"
+        },
+        "snowballstemmer": {
+            "hashes": [
+                "sha256:9f3bcd3c401c3e862ec0ebe6d2c069ebc012ce142cce209c098ccb5b09136e89",
+                "sha256:919f26a68b2c17a7634da993d91339e288964f93c274f1343e3bbbe2096e1128"
+            ],
+            "version": "==1.2.1"
         },
         "watchgod": {
             "hashes": [
