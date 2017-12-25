@@ -17,6 +17,7 @@ async def index(request):
 async def update_commit_status(owner, repo, sha, success, gh_user, gh_token):
     """Call Github api and set commit status."""
     auth = aiohttp.BasicAuth(gh_user, gh_token)
+    # TODO: Reuse sessions if possible.
     async with aiohttp.ClientSession(auth=auth) as session:
         url = 'https://api.github.com/repos/{}/{}/statuses/{}'.format(owner, repo, sha)
         data = {
