@@ -29,7 +29,7 @@ class FileStore:
             return junit_file.read()
 
     def store(self, owner, repo, commit, content):
-        """Store content to local file 'commit' in base/owner/repot.
+        """Store content to local file 'commit' in base/owner/repo.
 
         Raises:
             FileNotFoundError if path was not found.
