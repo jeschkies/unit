@@ -1,6 +1,7 @@
 """Backblaze B2 cloud storage for junit files."""
 import aiohttp
 import hashlib
+from asyncio_extras.contextmanager import async_contextmanager
 from urllib.parse import urljoin
 
 
@@ -45,6 +46,7 @@ class B2Store:
         Returns:
             api url (str): New url to call.
             token (str): Authorization token to use for call.
+
         """
         # TODO: reuse session if possible.
         async with aiohttp.ClientSession(auth=self._auth) as session:
@@ -54,13 +56,21 @@ class B2Store:
                 auth = await response.json()
                 return auth['apiUrl'], auth['authorizationToken']
 
-    async def get_upload_url(self, api_url, token):
+    @async_contextmanager
+    async def authorized_session(self):
+        """Provide an authorized session and API url."""
+        api_url, token = await self.get_authorization_token()
+        headers = {'Authorization': token}
+        async with aiohttp.ClientSession(headers=headers) as session:
+            yield session, api_url
+
+    async def get_upload_url(self):
         """Get upload url from B2.
 
         Use store() or upload() directly.
+
         """
-        headers = {'Authorization': token}
-        async with aiohttp.ClientSession(headers=headers) as session:
+        async with self.authorized_session() as (session, api_url):
             url = urljoin(api_url, 'b2api/v1/b2_get_upload_url')
             data = {'bucketId': self._bucket_id}
             async with session.post(url, json=data) as response:
@@ -75,15 +85,14 @@ class B2Store:
             async with session.post(upload_url, data=content) as response:
                 response.raise_for_status()
 
-    async def download(self, api_url, file_name, token):
+    async def download(self, file_name):
         """Download content of file from bucket.
 
         Returns
             Content as string.
 
         """
-        headers = {'Authorization': token}
-        async with aiohttp.ClientSession(headers=headers) as session:
+        async with self.authorized_session() as (session, api_url):
             url = urljoin(api_url, 'file/{}/{}'.format(self._bucket_name, file_name))
             async with session.get(url) as response:
                 if response.status == 404:
@@ -100,12 +109,10 @@ class B2Store:
             Content of file.
 
         """
-        api_url, token = await self.get_authorization_token()
         file_name = self.file_name(owner, repo, commit)
-        return await self.download(api_url, file_name, token)
+        return await self.download(file_name)
 
     async def store(self, owner, repo, commit, content):
         """Store content to B2 file 'commit' in bucket/owner/repo."""
-        api_url, token = await self.get_authorization_token()
-        upload_url, token = await self.get_upload_url(api_url, token)
+        upload_url, token = await self.get_upload_url()
         await self.upload(self.file_name(owner, repo, commit), content, upload_url, token)
