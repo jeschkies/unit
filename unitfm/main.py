@@ -5,6 +5,7 @@ import jinja2
 import os
 import xml.etree.ElementTree as ET
 from aiohttp import web
+from .b2_store import B2Store
 from .file_store import FileStore
 
 
@@ -108,6 +109,8 @@ async def post_junit(request):
 
 def app():
     """Create and return aiohttp app."""
+    env = os.environ.get('UNITFM_ENV', 'DEV')
+
     app_ = web.Application()
 
     app_['gh_user'] = os.environ.get('GITHUB_USER', None)
@@ -123,10 +126,19 @@ def app():
 
     aiohttp_jinja2.setup(app_, loader=jinja2.PackageLoader('unitfm', 'templates'))
 
-    # TODO: Decide on storage based on configuration.
-    # And don't forget to escape ;)
-    app_['junits'] = FileStore('./tests/fixtures')
-
+    # TODO: don't forget to escape content ;)
+    if env == 'DEV':
+        app_['junits'] = FileStore('./tests/fixtures')
+    elif env == 'PROD':
+        # TODO: Do not hard code
+        bucket_id = '9ed7fb02e1cf88d266040610'
+        bucket_name = 'unitfm'
+        b2_id = os.environ.get('B2_ID', None)
+        b2_secret = os.environ.get('B2_SECRET', None)
+        app_['junits'] = B2Store(bucket_id, bucket_name, b2_id, b2_secret)
+    else:
+        raise ValueError(
+            'Unitfm environment {} is not supported. Valid values are DEV, PROD.'.format(env))
     return app_
 
 

@@ -48,7 +48,6 @@ class B2Store:
             token (str): Authorization token to use for call.
 
         """
-        # TODO: reuse session if possible.
         async with aiohttp.ClientSession(auth=self._auth) as session:
             url = urljoin(self._base_url, 'b2_authorize_account')
             async with session.get(url) as response:
