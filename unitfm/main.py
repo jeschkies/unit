@@ -38,7 +38,7 @@ async def view_junit(request):
     commit_sha = request.match_info.get('sha')
 
     # Get junit file
-    raw_junit = request.app['junits'].get(owner, repo, commit_sha)
+    raw_junit = await request.app['junits'].get(owner, repo, commit_sha)
     if raw_junit is None:
         error = 'No unit file for commit {} found in project {}/{}'.format(commit_sha, owner, repo)
         raise web.HTTPNotFound(text=error)
@@ -95,7 +95,7 @@ async def post_junit(request):
 
     # Save junit file
     try:
-        request.app['junits'].store(owner, repo, commit_sha, body)
+        await request.app['junits'].store(owner, repo, commit_sha, body)
     except FileNotFoundError:
         error = 'Project {}/{} does not exist.'.format(owner, repo)
         return web.Response(status=404, text=error)
@@ -138,7 +138,7 @@ def app():
         app_['junits'] = B2Store(bucket_id, bucket_name, b2_id, b2_secret)
     else:
         raise ValueError(
-            'Unitfm environment {} is not supported. Valid values are DEV, PROD.'.format(env))
+            'Unitfm environment {} is not supported. Valid values are DEV and PROD.'.format(env))
     return app_
 
 

@@ -13,7 +13,7 @@ class FileStore:
         """
         self._base_dir = base
 
-    def get(self, owner, repo, commit):
+    async def get(self, owner, repo, commit):
         """Load local file 'commit' in base/owner/repo.
 
         Returns:
@@ -28,7 +28,7 @@ class FileStore:
         with path_to_junit.open('r') as junit_file:
             return junit_file.read()
 
-    def store(self, owner, repo, commit, content):
+    async def store(self, owner, repo, commit, content):
         """Store content to local file 'commit' in base/owner/repo.
 
         Raises:
