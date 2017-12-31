@@ -7,6 +7,6 @@ install:
     - make init
     - pip install coveralls
 script:
-    - make test
+    - make integration
     - coveralls
     - make report

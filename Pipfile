@@ -10,6 +10,7 @@ name = "pypi"
 aiohttp = "*"
 gunicorn = "*"
 "aiohttp-jinja2" = "*"
+asyncio-extras = "*"
 
 
 [dev-packages]
