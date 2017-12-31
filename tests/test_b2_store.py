@@ -1,6 +1,7 @@
 """Tests for B2 storage."""
 import os
 import pytest
+import time
 from unitfm.b2_store import B2Store
 
 
@@ -39,3 +40,13 @@ async def test_get_file(storage):
     """Verif that a file is loaded."""
     result = await storage.get('jeschkies', 'plan9', 'empty')
     assert result.startswith('<?xml version="1.0" encoding="utf-8"?>')
+
+
+@pytest.mark.integration
+async def test_store_file(storage):
+    """Verif that a file is stored."""
+    content = "foobar {}".format(time.time())
+    await storage.store('jeschkies', 'plan9', 'new_file', content)
+
+    result = await storage.get('jeschkies', 'plan9', 'new_file')
+    assert result == content
