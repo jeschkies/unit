@@ -1,5 +1,4 @@
 """Definition of unit.fm app."""
-import aiohttp
 import aiohttp_jinja2
 import jinja2
 import os
@@ -7,27 +6,13 @@ import xml.etree.ElementTree as ET
 from aiohttp import web
 from .b2_store import B2Store
 from .file_store import FileStore
+from .github import update_commit_status
 
 
 @aiohttp_jinja2.template('index.html')
 async def index(request):
     """Index of unit.fm."""
     return {'name': 'world'}
-
-
-async def update_commit_status(owner, repo, sha, success, gh_user, gh_token):
-    """Call Github api and set commit status."""
-    auth = aiohttp.BasicAuth(gh_user, gh_token)
-    # TODO: Reuse sessions if possible.
-    async with aiohttp.ClientSession(auth=auth) as session:
-        url = 'https://api.github.com/repos/{}/{}/statuses/{}'.format(owner, repo, sha)
-        data = {
-            'state': 'success' if success else 'failure',
-            'target_url': 'http://www.unit.fm/{}/{}/commit/{}'.format(owner, repo, sha),
-            'context': 'test/unit'
-        }
-        async with session.post(url, json=data) as response:
-            response.raise_for_status()
 
 
 @aiohttp_jinja2.template('junit.html')
