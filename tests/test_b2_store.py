@@ -2,7 +2,7 @@
 import os
 import pytest
 import time
-from unitfm.b2_store import B2Store
+from unitfm.store import B2Store
 
 
 @pytest.fixture

@@ -1,12 +1,11 @@
 """Definition of unit.fm app."""
+from . import github
 import aiohttp_jinja2
 import jinja2
 import os
 import xml.etree.ElementTree as ET
 from aiohttp import web
-from .b2_store import B2Store
-from .file_store import FileStore
-from .github import update_commit_status
+from .store import (B2Store, FileStore)
 
 
 @aiohttp_jinja2.template('index.html')
@@ -86,8 +85,7 @@ async def post_junit(request):
         return web.Response(status=404, text=error)
 
     # Update commit status
-    await update_commit_status(owner, repo, commit_sha, success, request.app['gh_user'],
-                               request.app['gh_token'])
+    await github.update_commit_status(owner, repo, commit_sha, success, request.app['gh_session'])
 
     return web.Response(status=201)
 
@@ -98,8 +96,11 @@ def app():
 
     app_ = web.Application()
 
-    app_['gh_user'] = os.environ.get('GITHUB_USER', None)
-    app_['gh_token'] = os.environ.get('GITHUB_TOKEN', None)
+    app_['gh_pem'] = os.environ.get('GITHUB_PEM', None)
+
+    gh_user = os.environ.get('GITHUB_USER', None)
+    gh_token = os.environ.get('GITHUB_TOKEN', None)
+    app_['gh_session'] = github.BasicAuthenticatedSession(gh_user, gh_token)
 
     # API Secret to start dogfooding.
     app_['unitfm_secret'] = os.environ.get('UNITFM_SECRET', None)

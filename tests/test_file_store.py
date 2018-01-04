@@ -1,7 +1,7 @@
 """Tests for file storage."""
 import pytest
 import time
-from unitfm.file_store import FileStore
+from unitfm.store import FileStore
 
 
 @pytest.fixture
