@@ -116,4 +116,6 @@ async def update_commit_status(owner, repo, sha, success, gh_session):
             'context': 'test/unitfm'
         }
         async with session.post(url, json=data) as response:
+            text = await response.text()
+            logging.debug('Github replied {}:{}'.format(response.status, text))
             response.raise_for_status()
