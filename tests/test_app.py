@@ -1,4 +1,5 @@
 """Tests for unit.fm."""
+import os
 import pytest
 from unitfm.main import app
 
@@ -8,6 +9,16 @@ def cli(loop, test_client):
     """Create and return test client as fixture."""
     test_app = app()
     return loop.run_until_complete(test_client(test_app))
+
+
+async def test_invalid_environment():
+    """Verify that error is thrown for unsupported environment."""
+    with pytest.raises(ValueError):
+        os.environ['UNITFM_ENV'] = 'INVALID'
+        app()
+
+    # Reset environment.
+    os.environ['UNITFM_ENV'] = 'DEV'
 
 
 async def test_index(cli):
