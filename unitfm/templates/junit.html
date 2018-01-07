@@ -3,7 +3,7 @@
 <div class="container">
     <div class="row">
         <div class="col">
-            <h1>{{ owner|e }}/<a href="#">{{ repo|e }}</a></h1>
+            <h1>{{ owner|e }}/<a href="{{ url('view_commits', owner=owner, repo=repo) }}">{{ repo|e }}</a></h1>
             <div>Failures: {{ failures }}</div>
             <div>Tests: {{ tests_count }}</div>
         </div>

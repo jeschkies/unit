@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+{% block body %}
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <h1>{{ owner|e }}/<a href="{{ url('view_commits', owner=owner, repo=repo) }}">{{ repo|e }}</a></h1>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

@@ -55,6 +55,15 @@ async def view_junit(request):
     }
 
 
+@aiohttp_jinja2.template('commits.html')
+async def view_commits(request):
+    """View all commits of a project/repo."""
+    owner = request.match_info.get('owner')
+    repo = request.match_info.get('repo')
+
+    return {'owner': owner, 'repo': repo}
+
+
 async def post_junit(request):
     """Post junit report."""
     # Check if call is authorized
@@ -105,7 +114,7 @@ def app():
     app_.router.add_get('/', index)
     app_.router.add_post('/{owner}/{repo}/commit/{sha}', post_junit)
     app_.router.add_get('/{owner}/{repo}/commit/{sha}', view_junit)
-    app_.router.add_get('/{owner}/{repo}/commits', view_commits)
+    app_.router.add_get('/{owner}/{repo}/commits', view_commits, name='view_commits')
 
     aiohttp_jinja2.setup(app_, loader=jinja2.PackageLoader('unitfm', 'templates'))
 
