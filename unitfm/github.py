@@ -3,6 +3,7 @@ import aiohttp
 from collections import namedtuple
 from datetime import timedelta
 import jwt
+import logging
 import time
 
 
@@ -100,6 +101,7 @@ class SessionManager():
 
         # Fetch token. TODO: cache token for its lifetime.
         response = await self._get_authorization_token(jwt, installation_id)
+        logging.info('Retrieved access token for installation {}'.format(installation_id))
         return AccessTokenSession(response['token'])
 
 
@@ -114,4 +116,6 @@ async def update_commit_status(owner, repo, sha, success, gh_session):
             'context': 'test/unitfm'
         }
         async with session.post(url, json=data) as response:
+            text = await response.text()
+            logging.debug('Github replied {}:{}'.format(response.status, text))
             response.raise_for_status()
