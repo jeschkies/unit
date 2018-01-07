@@ -11,6 +11,8 @@ aiohttp = "*"
 gunicorn = "*"
 "aiohttp-jinja2" = "*"
 asyncio-extras = "*"
+pyjwt = "*"
+cryptography = "*"
 
 
 [dev-packages]
