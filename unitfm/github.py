@@ -69,15 +69,26 @@ class SessionManager():
         jwt_bytes = jwt.encode(payload, self._private_key, algorithm='RS256')
         return jwt_bytes.decode('utf-8')
 
-    async def _get_authorization_token(self, jwt, installation_id):
-        """Return access token for installation of app."""
-        headers = {
+    def _headers(self, jwt):
+        """Return request header for retrieving access token of installation."""
+        return {
             'Authorization': 'Bearer {}'.format(jwt),
             'Accept': 'application/vnd.github.machine-man-preview+json'
         }
-        async with aiohttp.ClientSession(headers=headers) as session:
-            url = 'https://api.github.com/installations/{}/access_tokens'.format(installation_id)
-            async with session.post(url) as response:
+
+    def _access_token_url(self, installation_id):
+        """Return request URL for access token for installtion.
+
+        TODO:
+          * Retrieve from database.
+          * Use URI template.
+        """
+        return 'https://api.github.com/installations/{}/access_tokens'.format(installation_id)
+
+    async def _get_authorization_token(self, jwt, installation_id):
+        """Return access token for installation of app."""
+        async with aiohttp.ClientSession(headers=self._headers(jwt)) as session:
+            async with session.post(self._access_token_url(installation_id)) as response:
                 response.raise_for_status()
                 return await response.json()
 

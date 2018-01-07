@@ -23,6 +23,21 @@ def test_jwt_generate(key, jwt):
     assert auth._generate_jwt(1515102490, 300) == jwt
 
 
+def test_headers(key):
+    """Verify that request headers are correct."""
+    auth = SessionManager(key, 1234)
+    headers = auth._headers('some_jwt')
+    assert headers['Authorization'] == 'Bearer some_jwt'
+    assert headers['Accept'] == 'application/vnd.github.machine-man-preview+json'
+
+
+def test_access_token_url(key):
+    """Verify that access token request url is correct."""
+    auth = SessionManager(key, 1234)
+    url = auth._access_token_url(42)
+    assert url == 'https://api.github.com/installations/42/access_tokens'
+
+
 async def test_basic_authentication():
     """Verify basic authentication header."""
     session = BasicAuthenticatedSession('jeschkies', 'super secret')
