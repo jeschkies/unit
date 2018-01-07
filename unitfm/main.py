@@ -105,6 +105,7 @@ def app():
     app_.router.add_get('/', index)
     app_.router.add_post('/{owner}/{repo}/commit/{sha}', post_junit)
     app_.router.add_get('/{owner}/{repo}/commit/{sha}', view_junit)
+    app_.router.add_get('/{owner}/{repo}/commits', view_commits)
 
     aiohttp_jinja2.setup(app_, loader=jinja2.PackageLoader('unitfm', 'templates'))
 
