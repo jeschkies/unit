@@ -7,7 +7,10 @@ import time
 
 
 class BasicAuthenticatedSession(namedtuple('BasicAuthentication', ['user', 'token'])):
-    """A Github session authenticated with user name and token."""
+    """A Github session authenticated with user name and token.
+
+    TODO: Add session manager for basic authentication.
+    """
 
     async def auth_header_value(self):
         """Return authentication HTTP header."""

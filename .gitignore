@@ -102,4 +102,4 @@ ENV/
 .mypy_cache/
 
 # Testing
-test_main.py
+main_test.py

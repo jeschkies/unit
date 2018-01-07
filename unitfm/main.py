@@ -85,7 +85,9 @@ async def post_junit(request):
         return web.Response(status=404, text=error)
 
     # Update commit status
-    await github.update_commit_status(owner, repo, commit_sha, success, request.app['gh_session'])
+    installation_id = 77439  # TODO: Retrieve installation from database.
+    gh_session = await request.app['session_manager'].get_session(installation_id)
+    await github.update_commit_status(owner, repo, commit_sha, success, gh_session)
 
     return web.Response(status=201)
 
@@ -95,12 +97,6 @@ def app():
     env = os.environ.get('UNITFM_ENV', 'DEV')
 
     app_ = web.Application()
-
-    app_['gh_pem'] = os.environ.get('GITHUB_PEM', None)
-
-    gh_user = os.environ.get('GITHUB_USER', None)
-    gh_token = os.environ.get('GITHUB_TOKEN', None)
-    app_['gh_session'] = github.BasicAuthenticatedSession(gh_user, gh_token)
 
     # API Secret to start dogfooding.
     app_['unitfm_secret'] = os.environ.get('UNITFM_SECRET', None)
@@ -115,13 +111,21 @@ def app():
     # TODO: don't forget to escape content ;)
     if env == 'DEV':
         app_['junits'] = FileStore('./tests/fixtures')
+        app_['session_manager'] = None
     elif env == 'PROD':
+
+        # Configure B2 connection.
         # TODO: Do not hard code
         bucket_id = '9ed7fb02e1cf88d266040610'
         bucket_name = 'unitfm'
         b2_id = os.environ.get('B2_ID', None)
         b2_secret = os.environ.get('B2_SECRET', None)
         app_['junits'] = B2Store(bucket_id, bucket_name, b2_id, b2_secret)
+
+        # Configure Github connection.
+        gh_pem = os.environ.get('GITHUB_PEM', None)
+        gh_id = os.environ.get('GITHUB_ID', None)
+        app_['session_manager'] = github.SessionManager(gh_pem, gh_id)
     else:
         raise ValueError(
             'Unitfm environment {} is not supported. Valid values are DEV and PROD.'.format(env))
