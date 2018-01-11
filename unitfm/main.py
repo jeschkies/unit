@@ -2,6 +2,7 @@
 from . import github
 import aiohttp_jinja2
 import jinja2
+import logging
 import os
 import xml.etree.ElementTree as ET
 from aiohttp import web
@@ -102,6 +103,7 @@ async def post_junit(request):
     installation_id = 77439  # TODO: Retrieve installation from database.
     gh_session = await request.app['session_manager'].get_session(installation_id)
     await github.update_commit_status(owner, repo, commit_sha, success, gh_session)
+    logging.info('Updated commit status for {}/{} {}.'.format(owner, repo, commit_sha))
 
     return web.Response(status=201)
 
@@ -125,9 +127,12 @@ def app():
 
     # TODO: don't forget to escape content ;)
     if env == 'DEV':
+        logging.basicConfig(level=logging.DEBUG)
+
         app_['junits'] = FileStore('./tests/fixtures')
         app_['session_manager'] = None
     elif env == 'PROD':
+        logging.basicConfig(level=logging.INFO)
 
         # Configure B2 connection.
         # TODO: Do not hard code
