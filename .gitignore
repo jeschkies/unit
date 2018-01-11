@@ -103,3 +103,4 @@ ENV/
 
 # Testing
 main_test.py
+tests/fixtures/jeschkies/plan9/new_file
