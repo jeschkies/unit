@@ -7,5 +7,27 @@
         </div>
     </div>
 
+    <div class="row">
+        <div class="col">
+            <table class="table table-striped table-hover">
+              <thead>
+                <tr>
+                  <th scope="col">Commit</th>
+                  <th scope="col">Test Report</th>
+                <tr>
+              </thead>
+              <tbody>
+            {% for commit in commits %}
+                <tr>
+                  <td>{{ commit['commit']['message']|e }}</td>
+                  <td>
+                     <a href="{{ url('view_junit', owner=owner, repo=repo, sha=commit['sha']) }}">{{ commit['sha']|e }}</a>
+                  </td>
+                </tr>
+            {% endfor %}
+              </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 {% endblock %}

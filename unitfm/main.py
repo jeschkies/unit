@@ -61,7 +61,12 @@ async def view_commits(request):
     owner = request.match_info.get('owner')
     repo = request.match_info.get('repo')
 
-    return {'owner': owner, 'repo': repo}
+    installation_id = 77439  # TODO: Retrieve installation from database.
+    gh_session = await request.app['session_manager'].get_session(installation_id)
+    # TODO: Report not found.
+    commits = await github.list_commits(owner, repo, gh_session)
+
+    return {'owner': owner, 'repo': repo, 'commits': commits}
 
 
 async def post_junit(request):
@@ -113,7 +118,7 @@ def app():
     # Register routes
     app_.router.add_get('/', index)
     app_.router.add_post('/{owner}/{repo}/commit/{sha}', post_junit)
-    app_.router.add_get('/{owner}/{repo}/commit/{sha}', view_junit)
+    app_.router.add_get('/{owner}/{repo}/commit/{sha}', view_junit, name='view_junit')
     app_.router.add_get('/{owner}/{repo}/commits', view_commits, name='view_commits')
 
     aiohttp_jinja2.setup(app_, loader=jinja2.PackageLoader('unitfm', 'templates'))

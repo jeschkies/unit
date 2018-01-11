@@ -115,3 +115,16 @@ async def update_commit_status(owner, repo, sha, success, gh_session):
         }
         async with session.post(url, json=data) as response:
             response.raise_for_status()
+
+
+async def list_commits(owner, repo, gh_session):
+    """Retrieve list of all commits on master."""
+    headers = {
+        'Authorization': await gh_session.auth_header_value(),
+        'Accept': 'application/vnd.github.v3+json'
+    }
+    async with aiohttp.ClientSession(headers=headers) as session:
+        url = 'https://api.github.com/repos/{}/{}/commits'.format(owner, repo)
+        async with session.get(url) as response:
+            response.raise_for_status()
+            return await response.json()
