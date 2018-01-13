@@ -9,9 +9,9 @@ name = "pypi"
 
 aiohttp = "*"
 gunicorn = "*"
-"aiohttp-jinja2" = "*"
-asyncio-extras = "*"
-pyjwt = "*"
+"aiohttp_jinja2" = "*"
+asyncio_extras = "*"
+PyJWT = "*"
 cryptography = "*"
 
 

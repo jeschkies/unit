@@ -8,14 +8,24 @@ import time
 
 
 class BasicAuthenticatedSession(namedtuple('BasicAuthentication', ['user', 'token'])):
-    """A Github session authenticated with user name and token.
-
-    TODO: Add session manager for basic authentication.
-    """
+    """A Github session authenticated with user name and token."""
 
     async def auth_header_value(self):
         """Return authentication HTTP header."""
         return aiohttp.BasicAuth(self.user, self.token).encode()
+
+
+class BasicAuthenticatedSessionManager():
+    """Manages basic authentication header sessions for Github."""
+
+    def __init__(self, user, token):
+        """Create session manager."""
+        self._user = user
+        self._token = token
+
+    async def get_session(self, installation_id):
+        """Return basic auth session for configured user and token."""
+        return BasicAuthenticatedSession(self._user, self._token)
 
 
 class AccessTokenSession():
@@ -39,7 +49,7 @@ class AccessTokenSession():
         return 'token {}'.format(self._token)
 
 
-class SessionManager():
+class AccessTokenSessionManager():
     """Manages authenticated sessions with installed Github apps that query an access token."""
 
     def __init__(self, private_key, iss):
