@@ -132,7 +132,13 @@ async def update_commit_status(owner, repo, sha, success, gh_session):
 
 
 async def list_commits(owner, repo, gh_session):
-    """Retrieve list of all commits on master."""
+    """Retrieve list of all commits on master.
+
+    Returns:
+        None if owner or repo is unknown.
+        List of commits.
+
+    """
     headers = {
         'Authorization': await gh_session.auth_header_value(),
         'Accept': 'application/vnd.github.v3+json'
@@ -140,5 +146,8 @@ async def list_commits(owner, repo, gh_session):
     async with aiohttp.ClientSession(headers=headers) as session:
         url = 'https://api.github.com/repos/{}/{}/commits'.format(owner, repo)
         async with session.get(url) as response:
+            if response.status == 404:
+                return None
+
             response.raise_for_status()
             return await response.json()
