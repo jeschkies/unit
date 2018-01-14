@@ -1,4 +1,5 @@
 """Tests for unit.fm."""
+import json
 import os
 import pytest
 import unitfm
@@ -63,7 +64,9 @@ async def test_view_commits(cli, monkeypatch):  # NOQA D202
     """Verify that commits of project can be viewed."""
 
     async def github_list_commits_mock(owner, repo, session):
-        return [{'commit': {'message': 'The cake is a lie.'}, 'sha': 'deadbeef'}]
+        # commits.json is the example JSON provided by Github.
+        with open('./tests/fixtures/commits.json') as f:
+            return json.load(f)
 
     monkeypatch.setattr(unitfm.github, 'list_commits', github_list_commits_mock)
     response = await cli.get('/jeschkies/known/commits')
