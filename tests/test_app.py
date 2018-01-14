@@ -1,6 +1,8 @@
 """Tests for unit.fm."""
+import json
 import os
 import pytest
+import unitfm
 from unitfm.main import app
 
 
@@ -55,4 +57,28 @@ async def test_project_not_found(cli):
 async def test_junit_not_found(cli):
     """Verify that unkown junit report requests return 404 instead of 500."""
     response = await cli.get('/jeschkies/unit/commit/unknown')
+    assert response.status == 404
+
+
+async def test_view_commits(cli, monkeypatch):  # NOQA D202
+    """Verify that commits of project can be viewed."""
+
+    async def github_list_commits_mock(owner, repo, session):
+        # commits.json is the example JSON provided by Github.
+        with open('./tests/fixtures/commits.json') as f:
+            return json.load(f)
+
+    monkeypatch.setattr(unitfm.github, 'list_commits', github_list_commits_mock)
+    response = await cli.get('/jeschkies/known/commits')
+    assert response.status == 200
+
+
+async def test_view_commits_not_found(cli, monkeypatch):  # NOQA D202
+    """Verify that unknown project returns 404 instead of 500."""
+
+    async def github_list_commits_mock(owner, repo, session):
+        return None
+
+    monkeypatch.setattr(unitfm.github, 'list_commits', github_list_commits_mock)
+    response = await cli.get('/jeschkies/unknown/commits')
     assert response.status == 404

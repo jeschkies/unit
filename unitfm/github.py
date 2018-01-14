@@ -8,14 +8,24 @@ import time
 
 
 class BasicAuthenticatedSession(namedtuple('BasicAuthentication', ['user', 'token'])):
-    """A Github session authenticated with user name and token.
-
-    TODO: Add session manager for basic authentication.
-    """
+    """A Github session authenticated with user name and token."""
 
     async def auth_header_value(self):
         """Return authentication HTTP header."""
         return aiohttp.BasicAuth(self.user, self.token).encode()
+
+
+class BasicAuthenticatedSessionManager():
+    """Manages basic authentication header sessions for Github."""
+
+    def __init__(self, user, token):
+        """Create session manager."""
+        self._user = user
+        self._token = token
+
+    async def get_session(self, installation_id):
+        """Return basic auth session for configured user and token."""
+        return BasicAuthenticatedSession(self._user, self._token)
 
 
 class AccessTokenSession():
@@ -39,7 +49,7 @@ class AccessTokenSession():
         return 'token {}'.format(self._token)
 
 
-class SessionManager():
+class AccessTokenSessionManager():
     """Manages authenticated sessions with installed Github apps that query an access token."""
 
     def __init__(self, private_key, iss):
@@ -119,3 +129,25 @@ async def update_commit_status(owner, repo, sha, success, gh_session):
             text = await response.text()
             logging.debug('Github replied {}:{}'.format(response.status, text))
             response.raise_for_status()
+
+
+async def list_commits(owner, repo, gh_session):
+    """Retrieve list of all commits on master.
+
+    Returns:
+        None if owner or repo is unknown.
+        List of commits.
+
+    """
+    headers = {
+        'Authorization': await gh_session.auth_header_value(),
+        'Accept': 'application/vnd.github.v3+json'
+    }
+    async with aiohttp.ClientSession(headers=headers) as session:
+        url = 'https://api.github.com/repos/{}/{}/commits'.format(owner, repo)
+        async with session.get(url) as response:
+            if response.status == 404:
+                return None
+
+            response.raise_for_status()
+            return await response.json()

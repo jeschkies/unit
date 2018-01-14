@@ -56,6 +56,23 @@ async def view_junit(request):
     }
 
 
+@aiohttp_jinja2.template('commits.html')
+async def view_commits(request):
+    """View all commits of a project/repo."""
+    owner = request.match_info.get('owner')
+    repo = request.match_info.get('repo')
+
+    installation_id = 77439  # TODO: Retrieve installation from database.
+    gh_session = await request.app['session_manager'].get_session(installation_id)
+    commits = await github.list_commits(owner, repo, gh_session)
+
+    if commits is None:
+        error = 'Project {}/{} does not exist.'.format(owner, repo)
+        return web.Response(status=404, text=error)
+
+    return {'owner': owner, 'repo': repo, 'commits': commits}
+
+
 async def post_junit(request):
     """Post junit report."""
     # Check if call is authorized
@@ -106,7 +123,8 @@ def app():
     # Register routes
     app_.router.add_get('/', index)
     app_.router.add_post('/{owner}/{repo}/commit/{sha}', post_junit)
-    app_.router.add_get('/{owner}/{repo}/commit/{sha}', view_junit)
+    app_.router.add_get('/{owner}/{repo}/commit/{sha}', view_junit, name='view_junit')
+    app_.router.add_get('/{owner}/{repo}/commits', view_commits, name='view_commits')
 
     aiohttp_jinja2.setup(app_, loader=jinja2.PackageLoader('unitfm', 'templates'))
 
@@ -115,7 +133,11 @@ def app():
         logging.basicConfig(level=logging.DEBUG)
 
         app_['junits'] = FileStore('./tests/fixtures')
-        app_['session_manager'] = None
+
+        # Configure Github connection.
+        gh_user = os.environ.get('GITHUB_USER', 'unknow_nuser')
+        gh_token = os.environ.get('GITHUB_TOKEN', 'no_token')
+        app_['session_manager'] = github.BasicAuthenticatedSessionManager(gh_user, gh_token)
     elif env == 'PROD':
         logging.basicConfig(level=logging.INFO)
 
@@ -130,7 +152,7 @@ def app():
         # Configure Github connection.
         gh_pem = os.environ.get('GITHUB_PEM', None)
         gh_id = os.environ.get('GITHUB_ID', None)
-        app_['session_manager'] = github.SessionManager(gh_pem, gh_id)
+        app_['session_manager'] = github.AccessTokenSessionManager(gh_pem, gh_id)
     else:
         raise ValueError(
             'Unitfm environment {} is not supported. Valid values are DEV and PROD.'.format(env))
