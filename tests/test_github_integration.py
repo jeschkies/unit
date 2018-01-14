@@ -21,7 +21,7 @@ async def gh_session(loop):
 async def test_list_commits(gh_session):
     """Verify listing of all commits."""
     commits = await github.list_commits('jeschkies', 'unit', gh_session)
-    assert len(commits) == 13
+    assert len(commits) >= 1
 
 
 @pytest.mark.integration
