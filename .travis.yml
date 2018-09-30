@@ -1,12 +1,8 @@
-sudo: false
-language: python
-python:
-  - "3.6"
-cache: pip
-install:
-    - make init
-    - pip install coveralls
-script:
-    - make integration
-    - coveralls
-    - make report
+language: java
+before_cache:
+- rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+- rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+cache:
+  directories:
+  - $HOME/.gradle/caches/
+  - $HOME/.gradle/wrapper/
