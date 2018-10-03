@@ -1,5 +1,7 @@
 package unit
 
+import com.fasterxml.jackson.dataformat.xml.XmlMapper
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -22,14 +24,17 @@ fun Application.module() {
     install(DefaultHeaders)
     install(CallLogging)
     install(ContentNegotiation) {
-        register(ContentType.Application.Json, JacksonConverter())
+        val xmlMapper = XmlMapper().registerModule(KotlinModule())
+        register(ContentType.Application.Xml, JacksonConverter(xmlMapper))
     }
     install(Routing) {
         get("/") {
             call.respondText("My Example Blog", ContentType.Text.Html)
         }
         post("/") {
+            print("Received data")
             val test = call.receive<Test>()
+            print("Parsd data $test")
             val testResult = test.result
             call.respondText(testResult, ContentType.Text.Html)
         }
