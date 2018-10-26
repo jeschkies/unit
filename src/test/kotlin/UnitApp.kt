@@ -1,7 +1,6 @@
 package unit
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -17,14 +16,22 @@ import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-
-data class Test(val result: String)
+import unitfm.data.Testsuite
+import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule
+import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule
 
 fun Application.module() {
     install(DefaultHeaders)
     install(CallLogging)
     install(ContentNegotiation) {
-        val xmlMapper = XmlMapper().registerModule(KotlinModule())
+
+        // Create XML object mapper with support for JAXB annotations.
+        val xmlModule = JacksonXmlModule()
+        xmlModule.setDefaultUseWrapper(false)
+        val xmlMapper = XmlMapper(xmlModule)
+        val jaxbModule = JaxbAnnotationModule()
+        xmlMapper.registerModule(jaxbModule)
+
         register(ContentType.Application.Xml, JacksonConverter(xmlMapper))
     }
     install(Routing) {
@@ -32,10 +39,8 @@ fun Application.module() {
             call.respondText("My Example Blog", ContentType.Text.Html)
         }
         post("/") {
-            print("Received data")
-            val test = call.receive<Test>()
-            print("Parsd data $test")
-            val testResult = test.result
+            val test = call.receive<Testsuite>()
+            val testResult = test.failures.toString()
             call.respondText(testResult, ContentType.Text.Html)
         }
     }
