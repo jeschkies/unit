@@ -5,12 +5,14 @@ buildscript {
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "com.bmuschko:gradle-docker-plugin:3.2.3"
     }
 }
 
 apply plugin: 'kotlin'
 apply plugin: 'java'
 apply plugin: 'application'
+apply plugin: com.bmuschko.gradle.docker.DockerRemoteApiPlugin
 
 group 'unit'
 version '1.0-SNAPSHOT'
@@ -41,4 +43,34 @@ compileKotlin {
 }
 compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
+}
+
+// Tasks
+import com.bmuschko.gradle.docker.tasks.image.DockerPullImage
+import com.bmuschko.gradle.docker.tasks.container.DockerCreateContainer
+import com.bmuschko.gradle.docker.tasks.container.DockerStartContainer
+import com.bmuschko.gradle.docker.tasks.container.DockerStopContainer
+
+task postgresImage(type: DockerPullImage) {
+    repository = 'postgres'
+    tag = '10.5-alpine'
+}
+
+
+task postgresContainer(type: DockerCreateContainer) {
+    dependsOn postgresImage
+    targetImageId { postgresImage.getImageId() }
+    portBindings = ['5432:5432']
+    env = [
+            "POSTGRES_USER=kjeschkies", "POSTGRES_PASSWORD=1234"
+    ]
+}
+
+task startPostgres(type: DockerStartContainer) {
+    dependsOn postgresContainer
+    targetContainerId { postgresContainer.getContainerId() }
+}
+
+task stopPostgres(type: DockerStopContainer) {
+    targetContainerId { postgresContainer.getContainerId() }
 }
