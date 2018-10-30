@@ -2,6 +2,10 @@ import com.bmuschko.gradle.docker.tasks.image.DockerPullImage
 import com.bmuschko.gradle.docker.tasks.container.DockerCreateContainer
 import com.bmuschko.gradle.docker.tasks.container.DockerStartContainer
 import com.bmuschko.gradle.docker.tasks.container.DockerStopContainer
+import org.flywaydb.gradle.task.FlywayMigrateTask
+import java.sql.DriverManager
+
+
 
 val ktor_version = "0.9.5"
 
@@ -14,9 +18,6 @@ buildscript {
         }
     }
     dependencies {
-        //classpath("com.bmuschko:gradle-docker-plugin:3.2.3")
-        //classpath("gradle.plugin.com.boxfuse.client:gradle-plugin-publishing:5.2.1")
-        //classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.2.51")
         classpath("org.postgresql:postgresql:42.2.5")
     }
 }
@@ -52,13 +53,6 @@ val db_user = "kjeschkies"
 val db_password = "1234" // TODO: pull from environment.
 val database = "unitfm"
 
-// TODO(karsten): Create database for tests.
-flyway {
-    url = "jdbc:postgresql://localhost:5432/$database"
-    user = db_user
-    password = db_password
-}
-
 tasks {
 
     val postgresImage by creating(DockerPullImage::class) {
@@ -71,8 +65,7 @@ tasks {
         dependsOn(postgresImage)
         targetImageId { postgresImage.getImageId() }
         portBindings = listOf("5432:5432")
-        //env = arrayOf("POSTGRES_USER=$db_user")
-        //env.set(1, "POSTGRES_PASSWORD=$db_password")
+        setEnv("POSTGRES_USER=$db_user", "POSTGRES_PASSWORD=$db_password")
     }
 
     val startPostgres by creating(DockerStartContainer::class) {
@@ -82,5 +75,20 @@ tasks {
 
     val stopPostgres by creating(DockerStopContainer::class) {
         targetContainerId { postgresContainer.getContainerId() }
+    }
+
+    val createDatabase by creating {
+        doFirst {
+            val c = DriverManager.getConnection("jdbc:postgresql://localhost:5432/", db_user, db_password)
+            val statement = c.createStatement()
+            statement.executeUpdate("CREATE DATABASE $database")
+        }
+    }
+
+    val migrateDatabase by creating(FlywayMigrateTask::class) {
+        dependsOn(createDatabase)
+        url = "jdbc:postgresql://localhost:5432/$database"
+        user = db_user
+        password = db_password
     }
 }
