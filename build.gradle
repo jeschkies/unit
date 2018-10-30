@@ -2,10 +2,15 @@ buildscript {
     ext.kotlin_version = '1.2.51'
     repositories {
         mavenCentral()
+        maven {
+            url = uri("https://plugins.gradle.org/m2/")
+        }
     }
     dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "com.bmuschko:gradle-docker-plugin:3.2.3"
+        classpath "gradle.plugin.com.boxfuse.client:gradle-plugin-publishing:5.2.1"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "org.postgresql:postgresql:42.2.5"
     }
 }
 
@@ -13,6 +18,7 @@ apply plugin: 'kotlin'
 apply plugin: 'java'
 apply plugin: 'application'
 apply plugin: com.bmuschko.gradle.docker.DockerRemoteApiPlugin
+apply plugin: "org.flywaydb.flyway"
 
 group 'unit'
 version '1.0-SNAPSHOT'
@@ -46,6 +52,16 @@ compileTestKotlin {
 }
 
 // Tasks
+def db_user = 'kjeschkies'
+def db_password = '1234' // TODO: pull from environment.
+def database = 'unitfm'
+
+flyway {
+    url = "jdbc:postgresql://localhost:5432/$database"
+    user = db_user
+    password = db_password
+}
+
 import com.bmuschko.gradle.docker.tasks.image.DockerPullImage
 import com.bmuschko.gradle.docker.tasks.container.DockerCreateContainer
 import com.bmuschko.gradle.docker.tasks.container.DockerStartContainer
@@ -62,7 +78,7 @@ task postgresContainer(type: DockerCreateContainer) {
     targetImageId { postgresImage.getImageId() }
     portBindings = ['5432:5432']
     env = [
-            "POSTGRES_USER=kjeschkies", "POSTGRES_PASSWORD=1234"
+            "POSTGRES_USER=$db_user", "POSTGRES_PASSWORD=$db_password"
     ]
 }
 
