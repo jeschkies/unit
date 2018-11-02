@@ -3,6 +3,7 @@ import com.bmuschko.gradle.docker.tasks.container.DockerCreateContainer
 import com.bmuschko.gradle.docker.tasks.container.DockerStartContainer
 import com.bmuschko.gradle.docker.tasks.container.DockerStopContainer
 import org.flywaydb.gradle.task.FlywayMigrateTask
+import org.jooq.util.jaxb.Jdbc
 import java.sql.DriverManager
 
 
@@ -28,6 +29,7 @@ plugins {
     kotlin("jvm") version "1.2.61"
     id("org.flywaydb.flyway") version "5.2.1"
     id("com.bmuschko.docker-remote-api") version "3.2.3"
+    id("com.rohanprabhu.kotlin-dsl-jooq") version "0.3.1"
 }
 
 application {
@@ -46,12 +48,38 @@ dependencies {
     compile("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.9.4")
     compile("io.ktor:ktor-server-netty:$ktor_version")
     compile("io.ktor:ktor-jackson:$ktor_version")
+    compile("org.jooq:jooq")
     //testCompile group: 'junit', name: 'junit', version: '4.12'
+    jooqGeneratorRuntime("org.postgresql:postgresql:42.2.5")
 }
 
 val db_user = "kjeschkies"
 val db_password = "1234" // TODO: pull from environment.
 val database = "unitfm"
+
+jooqGenerator {
+    configuration("primary", project.java.sourceSets.getByName("main")) {
+        configuration = org.jooq.util.jaxb.Configuration().apply {
+            jdbc = Jdbc().apply {
+                driver = "org.postgresql.Driver"
+                user = db_user
+                password = db_password
+                url = "jdbc:postgresql://localhost:5432/$database"
+            }
+            generator = org.jooq.util.jaxb.Generator().apply {
+                database = org.jooq.util.jaxb.Database().apply {
+                    name = "org.jooq.util.postgres.PostgresDatabase"
+                    excludes = "flyway_.*"
+                    inputSchema = "public"
+                }
+                target = org.jooq.util.jaxb.Target().apply {
+                    packageName = "unitfm.models"
+                    directory = "${project.buildDir}/generated/jooq/primary"
+                }
+            }
+        }
+    }
+}
 
 tasks {
 
