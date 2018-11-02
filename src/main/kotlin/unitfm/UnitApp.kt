@@ -62,7 +62,6 @@ fun Application.module() {
             DSL.using(ds, SQLDialect.POSTGRES).use { ctx ->
                 testSuite.testcase.forEach { testcase ->
                     val record: TestcasesRecord = ctx.newRecord(Testcases.TESTCASES)
-                    record.id = 0 //TODO: id should be an autoincrement.
                     record.commit = "deadbeef"
                     record.status = Teststatus.failure // TODO: transform from data.testcase to models.enums.Teststatus
                     record.repository = "jeschkies/unit"
