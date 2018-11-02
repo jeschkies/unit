@@ -19,8 +19,26 @@ import io.ktor.server.netty.Netty
 import unitfm.data.Testsuite
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule
 import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule
+import com.zaxxer.hikari.HikariDataSource
+import io.ktor.http.HttpStatusCode
+import io.ktor.response.respond
+import org.jooq.impl.DSL
+import org.jooq.SQLDialect
+import unitfm.models.enums.Teststatus
+import unitfm.models.tables.Testcases
+import unitfm.models.tables.records.TestcasesRecord
+
 
 fun Application.module() {
+    val db_user =  "kjeschkies" //System.getenv("POSTGRES_USER")
+    val db_password =  "1234" //System.getenv("POSTGRES_PASSWORD")
+    val db_url = "jdbc:postgresql://localhost:5432/unitfm"
+
+    val ds = HikariDataSource()
+    ds.jdbcUrl = db_url
+    ds.username = db_user
+    ds.password = db_password
+
     install(DefaultHeaders)
     install(CallLogging)
     install(ContentNegotiation) {
@@ -39,9 +57,21 @@ fun Application.module() {
             call.respondText("My Example Blog", ContentType.Text.Html)
         }
         post("/") {
-            val test = call.receive<Testsuite>()
-            val testResult = test.failures.toString()
-            call.respondText(testResult, ContentType.Text.Html)
+            val testSuite = call.receive<Testsuite>()
+
+            DSL.using(ds, SQLDialect.POSTGRES).use { ctx ->
+                testSuite.testcase.forEach { testcase ->
+                    val record: TestcasesRecord = ctx.newRecord(Testcases.TESTCASES)
+                    record.id = 0 //TODO: id should be an autoincrement.
+                    record.commit = "deadbeef"
+                    record.status = Teststatus.failure // TODO: transform from data.testcase to models.enums.Teststatus
+                    record.repository = "jeschkies/unit"
+                    record.name = testcase.name
+                    record.store()
+                }
+            }
+
+            call.respond(HttpStatusCode.Created)
         }
     }
 }

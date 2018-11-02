@@ -46,9 +46,11 @@ dependencies {
     compile(kotlin("stdlib"))
     compile("ch.qos.logback:logback-classic:1.2.3")
     compile("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.9.4")
+    compile("com.zaxxer:HikariCP:2.7.8")
     compile("io.ktor:ktor-server-netty:$ktor_version")
     compile("io.ktor:ktor-jackson:$ktor_version")
     compile("org.jooq:jooq")
+    compile("org.postgresql:postgresql:42.2.5")
     //testCompile group: 'junit', name: 'junit', version: '4.12'
     jooqGeneratorRuntime("org.postgresql:postgresql:42.2.5")
 }
