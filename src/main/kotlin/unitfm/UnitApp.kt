@@ -25,20 +25,20 @@ import io.ktor.response.respond
 import org.jooq.impl.DSL
 import org.jooq.SQLDialect
 import unitfm.data.Testcase
-import unitfm.models.enums.Teststatus
-import unitfm.models.tables.Testcases
-import unitfm.models.tables.records.TestcasesRecord
+//import unitfm.models.enums.Teststatus
+//import unitfm.models.tables.Testcases
+//import unitfm.models.tables.records.TestcasesRecord
 
 
-fun statusOf(testcase: Testcase): Teststatus {
-    if (testcase.error.isNotEmpty() || testcase.failure.isNotEmpty()) {
-        return Teststatus.failure
-    } else if (!testcase.skipped.isNullOrBlank()) {
-        return Teststatus.skipped
-    }
-
-    return Teststatus.success
-}
+//fun statusOf(testcase: Testcase): Teststatus {
+//    if (testcase.error.isNotEmpty() || testcase.failure.isNotEmpty()) {
+//        return Teststatus.failure
+//    } else if (!testcase.skipped.isNullOrBlank()) {
+//        return Teststatus.skipped
+//    }
+//
+//    return Teststatus.success
+//}
 
 fun Application.module() {
     val db_user =  "kjeschkies" //System.getenv("POSTGRES_USER")
@@ -70,16 +70,16 @@ fun Application.module() {
         post("/") {
             val testSuite = call.receive<Testsuite>()
 
-            DSL.using(ds, SQLDialect.POSTGRES).use { ctx ->
-                testSuite.testcase.forEach { testcase ->
-                    val record: TestcasesRecord = ctx.newRecord(Testcases.TESTCASES)
-                    record.commit = "deadbeef"
-                    record.status = statusOf(testcase)
-                    record.repository = "jeschkies/unit"
-                    record.name = testcase.name
-                    record.store()
-                }
-            }
+//            DSL.using(ds, SQLDialect.POSTGRES).use { ctx ->
+//                testSuite.testcase.forEach { testcase ->
+//                    val record: TestcasesRecord = ctx.newRecord(Testcases.TESTCASES)
+//                    record.commit = "deadbeef"
+//                    record.status = statusOf(testcase)
+//                    record.repository = "jeschkies/unit"
+//                    record.name = testcase.name
+//                    record.store()
+//                }
+//            }
 
             call.respond(HttpStatusCode.Created)
         }

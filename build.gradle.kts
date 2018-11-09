@@ -2,6 +2,8 @@ import com.bmuschko.gradle.docker.tasks.image.DockerPullImage
 import com.bmuschko.gradle.docker.tasks.container.DockerCreateContainer
 import com.bmuschko.gradle.docker.tasks.container.DockerStartContainer
 import com.bmuschko.gradle.docker.tasks.container.DockerStopContainer
+import com.rohanprabhu.gradle.plugins.kdjooq.JooqCodeGenerationTask
+import com.rohanprabhu.gradle.plugins.kdjooq.JooqConfiguration
 import org.flywaydb.gradle.task.FlywayMigrateTask
 import org.jooq.util.jaxb.Jdbc
 import java.sql.DriverManager
@@ -58,30 +60,6 @@ val db_user = "kjeschkies"
 val db_password = "1234" // TODO: pull from environment.
 val database = "unitfm"
 
-jooqGenerator {
-    configuration("primary", project.java.sourceSets.getByName("main")) {
-        configuration = org.jooq.util.jaxb.Configuration().apply {
-            jdbc = Jdbc().apply {
-                driver = "org.postgresql.Driver"
-                user = db_user
-                password = db_password
-                url = "jdbc:postgresql://localhost:5432/$database"
-            }
-            generator = org.jooq.util.jaxb.Generator().apply {
-                database = org.jooq.util.jaxb.Database().apply {
-                    name = "org.jooq.util.postgres.PostgresDatabase"
-                    excludes = "flyway_.*"
-                    inputSchema = "public"
-                }
-                target = org.jooq.util.jaxb.Target().apply {
-                    packageName = "unitfm.models"
-                    directory = "${project.buildDir}/generated/jooq/primary"
-                }
-            }
-        }
-    }
-}
-
 tasks {
 
     val postgresImage by creating(DockerPullImage::class) {
@@ -119,5 +97,30 @@ tasks {
         url = "jdbc:postgresql://localhost:5432/$database"
         user = db_user
         password = db_password
+    }
+
+    val generateJooq by creating(JooqCodeGenerationTask::class) {
+        dependsOn(migrateDatabase)
+
+        jooqConfiguration = JooqConfiguration("primary", project.java.sourceSets.getByName("main"))
+        jooqConfiguration.configuration = org.jooq.util.jaxb.Configuration().apply {
+                jdbc = Jdbc().apply {
+                    driver = "org.postgresql.Driver"
+                    user = db_user
+                    password = db_password
+                    url = "jdbc:postgresql://localhost:5432/$database"
+                }
+                generator = org.jooq.util.jaxb.Generator().apply {
+                    database = org.jooq.util.jaxb.Database().apply {
+                        name = "org.jooq.util.postgres.PostgresDatabase"
+                        excludes = "flyway_.*"
+                        inputSchema = "public"
+                    }
+                    target = org.jooq.util.jaxb.Target().apply {
+                        packageName = "unitfm.models"
+                        directory = "${project.buildDir}/generated/jooq/primary"
+                    }
+                }
+            }
     }
 }
