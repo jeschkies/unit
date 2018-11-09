@@ -39,9 +39,10 @@ fun Application.module() {
         get("/") {
             call.respondText("My Example Blog", ContentType.Text.Html)
         }
-        post("/") {
-
-            call.respond(HttpStatusCode.Created)
+        post("/reports/{prefix...}") {
+            val prefix = call.parameters.getAll("prefix")?.joinToString("/") ?: ""
+            ReportRepository.createReport(prefix)
+            call.respondText("Prefix: $prefix", ContentType.Text.Plain)
         }
     }
 }
