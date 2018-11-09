@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><testsuite errors="0" failures="1" name="pytest" tests="2" time="0.224"><testcase classname="tests.test_app" name="test_index[pyloop]" time="0.052658796310424805"><failure message="AssertionError: assert 200 == 201
+<?xml version="1.0" encoding="utf-8"?><testsuite errors="0" failures="1" name="pytest" skipped="0" tests="2" time="0.224"><testcase classname="tests.test_app" name="test_index[pyloop]" time="0.052658796310424805"><failure message="AssertionError: assert 200 == 201
  +  where 200 = &lt;ClientResponse(http://127.0.0.1:54359/) [200 OK]&gt;\n&lt;CIMultiDictProxy(&apos;Content-Type&apos;: &apos;text/html; charset=utf-8&apos;, &apos;Content-Length&apos;: &apos;480&apos;, &apos;Date&apos;: &apos;Mon, 18 Dec 2017 20:21:38 GMT&apos;, &apos;Server&apos;: &apos;Python/3.6 aiohttp/2.3.6&apos;)&gt;\n.status">cli = &lt;aiohttp.test_utils.TestClient object at 0x107342588&gt;
 
     async def test_index(cli):
