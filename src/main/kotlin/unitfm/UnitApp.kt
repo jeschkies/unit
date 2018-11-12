@@ -19,10 +19,12 @@ import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule
 import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.PartData
-import io.ktor.http.content.readAllParts
 import io.ktor.http.content.streamProvider
 import io.ktor.request.receiveMultipart
 import io.ktor.response.respond
+import io.ktor.routing.route
+import java.io.File
+import java.io.FileOutputStream
 
 fun Application.module() {
 
@@ -43,30 +45,37 @@ fun Application.module() {
         get("/") {
             call.respondText("My Example Blog", ContentType.Text.Html)
         }
-        post("/reports/{prefix...}") {
-            val prefix = call.parameters.getAll("prefix")?.joinToString("/") ?: ""
+        route("/reports") {
+            get("{key...}") {
+                val key = call.parameters.getAll("key")?.joinToString("/") ?: ""
 
-            val multipart = call.receiveMultipart()
+                ReportRepository.getReports(key)
+                call.respondText("reports", ContentType.Text.Plain)
+            }
+            post("{key...}") {
+                val key = call.parameters.getAll("key")?.joinToString("/") ?: ""
 
-            var commit: String? = null
-            val reports = mutableListOf<String>()
-            while (true) {
-                val part = multipart.readPart() ?: break
+                val multipart = call.receiveMultipart()
 
-                when(part) {
-                    is PartData.FormItem ->
+                var commit: String? = null
+                val reportFolder = ReportRepository.createReport(key)
+                while (true) {
+                    val part = multipart.readPart() ?: break
+
+                    when(part) {
+                        is PartData.FormItem ->
                             if (part.name == "commit") {
                                 commit = part.value
                             }
-                    is PartData.FileItem ->
-                            reports += part.streamProvider().bufferedReader().use { it.readText() }
+                        is PartData.FileItem -> {
+                            // TODO(karsten): Check if file exists
+                            val file = File(reportFolder, part.originalFileName)
+                            part.streamProvider().copyTo(FileOutputStream(file))
+                        }
+                    }
                 }
+                call.respond(HttpStatusCode.Created)
             }
-            if (commit != null) print("Commit: ${commit}")
-            print("Reports: $reports")
-
-            ReportRepository.createReport(prefix)
-            call.respondText("Prefix: $prefix", ContentType.Text.Plain)
         }
     }
 }
