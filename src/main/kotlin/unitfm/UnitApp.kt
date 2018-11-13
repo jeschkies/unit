@@ -1,22 +1,17 @@
 package unitfm
 
-import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.features.CallLogging
-import io.ktor.features.ContentNegotiation
 import io.ktor.features.DefaultHeaders
 import io.ktor.http.ContentType
-import io.ktor.jackson.JacksonConverter
 import io.ktor.response.respondText
 import io.ktor.routing.Routing
 import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule
-import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.PartData
 import io.ktor.http.content.streamProvider
@@ -30,27 +25,17 @@ fun Application.module() {
 
     install(DefaultHeaders)
     install(CallLogging)
-    install(ContentNegotiation) {
-
-        // Create XML object mapper with support for JAXB annotations.
-        val xmlModule = JacksonXmlModule()
-        xmlModule.setDefaultUseWrapper(false)
-        val xmlMapper = XmlMapper(xmlModule)
-        val jaxbModule = JaxbAnnotationModule()
-        xmlMapper.registerModule(jaxbModule)
-
-        register(ContentType.Application.Xml, JacksonConverter(xmlMapper))
-    }
     install(Routing) {
         get("/") {
             call.respondText("My Example Blog", ContentType.Text.Html)
         }
         route("/reports") {
             get("{key...}") {
-                // TODO(karsten): Lots of error handling and we don't support any prefix length.
+                // TODO(karsten): Lots of error handling and we don't support arbitrary prefix depth.
                 val key = call.parameters.getAll("key")?.joinToString("/") ?: ""
 
-                ReportRepository.getReports(key)
+                val reports = ReportRepository.getReports(key).sortedBy { it.name }
+
                 call.respondText("reports", ContentType.Text.Plain)
             }
             post("{key...}") {

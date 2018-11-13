@@ -6,9 +6,10 @@ import java.io.File
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule
 import com.fasterxml.jackson.module.kotlin.readValue
+import unitfm.data.Testcase
 
 
-data class Report(val name: String, val tests: List<Testsuite>)
+data class Report(val name: String, val tests: List<Testcase>)
 
 /**
  * A repository is a S3 bucket like structure. Reports are stored with keys.
@@ -57,7 +58,8 @@ object ReportRepository {
                 .map { report : File ->
                     val name = report.toRelativeString(folderWithPrefix)
                     val testsuites: List<Testsuite> = report.listFiles().map { loadJUnitReport(it) }
-                    Report(name, testsuites)
+                    val testcases = testsuites.flatMap { it.testcase }
+                    Report(name, testcases)
                 }
 
         reports.forEach { println(it) }
