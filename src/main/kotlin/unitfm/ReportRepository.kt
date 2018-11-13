@@ -17,18 +17,16 @@ object ReportRepository {
     val separator = '/'
     val reposFolder = File("reports")
 
-    private fun createMapper(): XmlMapper {
+    val xmlMapper: XmlMapper
+
+    init {
         // Create XML object mapper with support for JAXB annotations.
         val xmlModule = JacksonXmlModule()
         xmlModule.setDefaultUseWrapper(false)
-        val xmlMapper = XmlMapper(xmlModule)
+        this.xmlMapper = XmlMapper(xmlModule)
         val jaxbModule = JaxbAnnotationModule()
         xmlMapper.registerModule(jaxbModule)
-
-        return xmlMapper
     }
-    val xmlMapper = createMapper()
-
     /**
      * Creates a report folder for given prefix in repository.
      *
@@ -67,7 +65,6 @@ object ReportRepository {
     }
 
     fun loadJUnitReport(file: File): Testsuite {
-        println("Loading $file")
         return xmlMapper.readValue<Testsuite>(file)
     }
 }
