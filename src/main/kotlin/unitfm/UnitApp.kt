@@ -47,6 +47,7 @@ fun Application.module() {
         }
         route("/reports") {
             get("{key...}") {
+                // TODO(karsten): Lots of error handling and we don't support any prefix length.
                 val key = call.parameters.getAll("key")?.joinToString("/") ?: ""
 
                 ReportRepository.getReports(key)
