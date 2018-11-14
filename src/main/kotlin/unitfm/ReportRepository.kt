@@ -6,15 +6,21 @@ import java.io.File
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule
 import com.fasterxml.jackson.module.kotlin.readValue
+import mu.KotlinLogging
 import unitfm.data.Testcase
 
 
-data class Report(val name: String, val tests: List<Testcase>)
+class Report(val name: String, val tests: List<Testcase>) {
+
+    val errors: Int = tests.count{ it.error.isNotEmpty() || it.failure.isNotEmpty() }
+}
 
 /**
  * A repository is a S3 bucket like structure. Reports are stored with keys.
  */
 object ReportRepository {
+    private val logger = KotlinLogging.logger {}
+
     val separator = '/'
     val reposFolder = File("reports")
 
@@ -52,7 +58,8 @@ object ReportRepository {
      *  /unit/build/1/deadbeef and /unit/build/2/91859a7 are two different reports.
      */
     fun getReports(keyPrefix: String): List<Report> {
-        println("Getting reports for $keyPrefix")
+        logger.info {  "Getting reports for $keyPrefix" }
+
         val folderWithPrefix = File(reposFolder, keyPrefix)
         val reports = folderWithPrefix.listFiles { f -> f.isDirectory }
                 .map { report : File ->
@@ -62,8 +69,7 @@ object ReportRepository {
                     Report(name, testcases)
                 }
 
-        reports.forEach { println(it) }
-        return emptyList()
+        return reports
     }
 
     fun loadJUnitReport(file: File): Testsuite {

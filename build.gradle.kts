@@ -11,6 +11,7 @@ import java.sql.DriverManager
 
 
 val ktor_version = "0.9.5"
+val jackson_version = "2.9.4"
 
 buildscript {
     repositories {
@@ -47,8 +48,10 @@ repositories {
 dependencies {
     compile(kotlin("stdlib"))
     compile("ch.qos.logback:logback-classic:1.2.3")
-    compile("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.9.4")
+    compile("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson_version")
+    compile( "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson_version")
     compile("com.zaxxer:HikariCP:2.7.8")
+    compile("io.github.microutils:kotlin-logging:1.6.20")
     compile("io.ktor:ktor-server-netty:$ktor_version")
     compile("io.ktor:ktor-jackson:$ktor_version")
     compile("org.jooq:jooq")

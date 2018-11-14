@@ -1,9 +1,11 @@
 package unitfm
 
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.features.CallLogging
+import io.ktor.features.ContentNegotiation
 import io.ktor.features.DefaultHeaders
 import io.ktor.http.ContentType
 import io.ktor.response.respondText
@@ -15,6 +17,7 @@ import io.ktor.server.netty.Netty
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.PartData
 import io.ktor.http.content.streamProvider
+import io.ktor.jackson.jackson
 import io.ktor.request.receiveMultipart
 import io.ktor.response.respond
 import io.ktor.routing.route
@@ -25,6 +28,11 @@ fun Application.module() {
 
     install(DefaultHeaders)
     install(CallLogging)
+    install(ContentNegotiation) {
+        jackson {
+            registerModule(JavaTimeModule()) // support java.time.* types
+        }
+    }
     install(Routing) {
         get("/") {
             call.respondText("My Example Blog", ContentType.Text.Html)
@@ -35,8 +43,8 @@ fun Application.module() {
                 val key = call.parameters.getAll("key")?.joinToString("/") ?: ""
 
                 val reports = ReportRepository.getReports(key).sortedBy { it.name }
-
-                call.respondText("reports", ContentType.Text.Plain)
+                val summary = Summary(reports)
+                call.respond(summary)
             }
             post("{key...}") {
                 val key = call.parameters.getAll("key")?.joinToString("/") ?: ""
