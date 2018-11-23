@@ -23,17 +23,21 @@
                 }
             ]]>
         </style>
+
+	<defs>
+		<g id="build" x="0">
+		  <rect x="0" width="50" height="50" class="failure" />
+		  <text x="0" y="70" class="buildLabel">1</text>
+		</g>	
+	</defs>
+
         <!-- Build column -->
-        <g id="build" x="0">
-	  <rect x="0" width="50" height="50" class="failure" />
-	  <text x="0" y="70" class="buildLabel">1</text>
-        </g>	
         <g x ="50">
 	  <rect x="0" width="50" height="50" class="failure" />
 	  <text x="0" y="70" class="buildLabel">2</text>
         </g>	
 
-        <use href="#build" x="100" width="50" class="success" /> 
+        <use x="50" y="0" xlink:href="#build" x="100" width="50" class="success" /> 
 
   </svg>
 
