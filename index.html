@@ -6,38 +6,33 @@
   <svg width="100%" height="100%">
         <style type="text/css" >
             <![CDATA[
-                rect.failure {
-                    stroke: #dbdbdb;
+                .failure {
+                    stroke: white;
                     fill:   red;
                 }
-                rect.success {
-                    stroke: #dbdbdb;
+                .success {
+                    stroke: white;
                     fill:   green;
                 }
 
                 .buildLabel {
                     font: 12px sans-serif;
-                }
-                g.success > rect {
-                     fill: green;
+                    stroke: none;
+                    fill:   black;
                 }
             ]]>
         </style>
 
 	<defs>
 		<g id="build" x="0">
-		  <rect x="0" width="50" height="50" class="failure" />
-		  <text x="0" y="70" class="buildLabel">1</text>
+		  <rect x="0" width="10" height="100"/>
+		  <text x="0" y="110" class="buildLabel">1</text>
 		</g>	
 	</defs>
 
         <!-- Build column -->
-        <g x ="50">
-	  <rect x="0" width="50" height="50" class="failure" />
-	  <text x="0" y="70" class="buildLabel">2</text>
-        </g>	
-
-        <use x="50" y="0" xlink:href="#build" x="100" width="50" class="success" /> 
+        <use x="0" y="0" xlink:href="#build" class="success" />
+	    <use x="10" y="0" xlink:href="#build" class="failure" />
 
   </svg>
 
