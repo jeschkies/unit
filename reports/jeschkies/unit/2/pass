@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuite errors="0" failures="0" name="pytest" tests="3" time="0.328">
+	<testcase classname="tests.test_app" name="test_index[pyloop]" time="0.06121206283569336"></testcase>
+	<testcase classname="tests.test_app" name="test_rejection[pyloop]" time="0.023204565048217773"></testcase>
+	<testcase classname="tests.test_app" name="test_junit_not_found[pyloop]" time="0.03633594512939453"></testcase>
+</testsuite>
