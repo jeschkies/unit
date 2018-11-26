@@ -1,0 +1,40 @@
+<html>
+<body>
+
+<h1>Test reports for project jeschkies/unit</h1>
+
+  <svg width="100%" height="100%">
+        <style type="text/css" >
+            <![CDATA[
+                .failure {
+                    stroke: white;
+                    fill:   red;
+                }
+                .success {
+                    stroke: white;
+                    fill:   green;
+                }
+
+                .buildLabel {
+                    font: 12px sans-serif;
+                    stroke: none;
+                    fill:   black;
+                }
+            ]]>
+        </style>
+
+	<defs>
+		<g id="build" x="0">
+		  <rect x="0" width="10" height="100"/>
+		  <text x="0" y="110" class="buildLabel">1</text>
+		</g>	
+	</defs>
+
+        <!-- Build column -->
+        <use x="0" y="0" xlink:href="#build" class="success" />
+	    <use x="10" y="0" xlink:href="#build" class="failure" />
+
+  </svg>
+
+</body>
+</html> 

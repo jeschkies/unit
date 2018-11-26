@@ -26,6 +26,58 @@ import java.io.FileOutputStream
 
 fun Application.module() {
 
+    fun template(summary: Summary): String {
+        val content = StringBuilder()
+        content.append("""
+                <html>
+                <body>
+
+                <h1>Test reports for project jeschkies/unit</h1>
+
+                <svg width="100%" height="100%">
+                <style type="text/css" >
+                <![CDATA[
+                    .failure {
+                        stroke: white;
+                        fill:   red;
+                    }
+                    .success {
+                        stroke: white;
+                        fill:   green;
+                    }
+
+                    .buildLabel {
+                        font: 12px sans-serif;
+                        stroke: none;
+                        fill:   black;
+                    }
+            ]]>
+                </style>
+
+                <defs>
+                <g id="build" x="0">
+                <rect x="0" width="10" height="100"/>
+                <text x="0" y="110" class="buildLabel">1</text>
+                </g>
+                </defs>
+
+                """.trimIndent())
+        summary.reportSummaries.forEachIndexed { i, summary ->
+            val outcome = if (summary.errors == 0 ) "success" else "failure"
+            val x = i * 10
+            content.append("""
+                    <use x="$x" y="0" xlink:href="#build" class="$outcome" />
+                    """.trimIndent())
+        }
+        content.append("""
+              </svg>
+
+            </body>
+            </html>
+        """.trimIndent())
+        return content.toString()
+    }
+
     install(DefaultHeaders)
     install(CallLogging)
     install(ContentNegotiation) {
@@ -44,7 +96,7 @@ fun Application.module() {
 
                 val reports = ReportRepository.getReports(key).sortedBy { it.name }
                 val summary = Summary(reports)
-                call.respond(summary)
+                call.respondText(template(summary), ContentType.Text.Html)
             }
             post("{key...}") {
                 val key = call.parameters.getAll("key")?.joinToString("/") ?: ""
