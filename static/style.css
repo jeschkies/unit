@@ -1,0 +1,22 @@
+.failure {
+    stroke: white;
+    fill:   red;
+}
+.success {
+    stroke: white;
+    fill:   green;
+}
+
+.buildLabel {
+    font: 12px sans-serif;
+    stroke: none;
+    fill:   black;
+    display: none;
+}
+.buildBar:hover {
+    stroke: yellow;
+}
+.buildBar:hover + .buildLabel {
+
+    display: block;
+}

@@ -16,6 +16,8 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.PartData
+import io.ktor.http.content.files
+import io.ktor.http.content.static
 import io.ktor.http.content.streamProvider
 import io.ktor.jackson.jackson
 import io.ktor.request.receiveMultipart
@@ -29,44 +31,25 @@ fun Application.module() {
     fun template(summary: Summary): String {
         val content = StringBuilder()
         content.append("""
+                <!DOCTYPE html>
                 <html>
+                <head>
+                    <link rel="stylesheet" href="/static/style.css">
+                </head>
                 <body>
 
                 <h1>Test reports for project jeschkies/unit</h1>
 
                 <svg width="100%" height="100%">
-                <style type="text/css" >
-                <![CDATA[
-                    .failure {
-                        stroke: white;
-                        fill:   red;
-                    }
-                    .success {
-                        stroke: white;
-                        fill:   green;
-                    }
-
-                    .buildLabel {
-                        font: 12px sans-serif;
-                        stroke: none;
-                        fill:   black;
-                    }
-            ]]>
-                </style>
-
-                <defs>
-                <g id="build" x="0">
-                <rect x="0" width="10" height="100"/>
-                <text x="0" y="110" class="buildLabel">1</text>
-                </g>
-                </defs>
-
                 """.trimIndent())
         summary.reportSummaries.forEachIndexed { i, summary ->
             val outcome = if (summary.errors == 0 ) "success" else "failure"
             val x = i * 10
             content.append("""
-                    <use x="$x" y="0" xlink:href="#build" class="$outcome" />
+                    <g class="build" x="10">
+		                <rect x="$x" y="10" width="10" height="100" class="$outcome buildBar"/>
+		                <text x="$x" y="10" class="buildLabel">Build #$i</text>
+	 	            </g>
                     """.trimIndent())
         }
         content.append("""
@@ -88,6 +71,9 @@ fun Application.module() {
     install(Routing) {
         get("/") {
             call.respondText("My Example Blog", ContentType.Text.Html)
+        }
+        static("/static") {
+            files("static")
         }
         route("/reports") {
             get("{key...}") {
