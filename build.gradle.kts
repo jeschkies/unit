@@ -24,7 +24,7 @@ buildscript {
 plugins {
     application
     java
-    kotlin("jvm") version "1.2.61"
+    kotlin("jvm") version "1.3.0"
     id("org.flywaydb.flyway") version "5.2.1"
     id("com.bmuschko.docker-remote-api") version "3.2.3"
 }
@@ -41,6 +41,8 @@ repositories {
 
 dependencies {
     compile(kotlin("stdlib"))
+    compile(kotlin("stdlib-jdk8"))
+    compile(kotlin("reflect"))
     compile("ch.qos.logback:logback-classic:1.2.3")
     compile("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson_version")
     compile( "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson_version")
@@ -48,7 +50,15 @@ dependencies {
     compile("io.github.microutils:kotlin-logging:1.6.20")
     compile("io.ktor:ktor-server-netty:$ktor_version")
     compile("io.ktor:ktor-jackson:$ktor_version")
+    compile("org.jdbi:jdbi3-kotlin-sqlobject:3.5.1")
     compile("org.postgresql:postgresql:42.2.5")
+
+    testCompile("io.kotlintest:kotlintest-runner-junit5:3.1.10")
+}
+
+//TODO: Remove but make sure that tests are auto discovered.
+tasks.withType<Test> {
+    useJUnitPlatform {}
 }
 
 val db_user = "kjeschkies"

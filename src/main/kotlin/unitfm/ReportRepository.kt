@@ -7,13 +7,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import mu.KotlinLogging
-import unitfm.data.Testcase
-
-
-class Report(val name: String, val tests: List<Testcase>) {
-
-    val errors: Int = tests.count{ it.error.isNotEmpty() || it.failure.isNotEmpty() }
-}
+import unitfm.model.Report
 
 /**
  * A repository is a S3 bucket like structure. Reports are stored with keys.
