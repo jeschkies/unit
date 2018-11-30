@@ -9,6 +9,7 @@ interface Reports {
     @SqlUpdate("insert into reports (commit, key) values (:report.commit, :report.key)")
     fun insert(report: Report)
 
+    // TODO(karsten): join with testsuites.
     @SqlQuery("SELECT * FROM reports ORDER BY id")
     fun reports(): List<Report>
 }
