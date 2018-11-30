@@ -25,8 +25,14 @@ plugins {
     application
     java
     kotlin("jvm") version "1.3.0"
-    id("org.flywaydb.flyway") version "5.2.1"
+    id("org.flywaydb.flyway") version "5.2.3"
     id("com.bmuschko.docker-remote-api") version "3.2.3"
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class.java).all {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
 }
 
 application {
@@ -51,9 +57,14 @@ dependencies {
     compile("io.ktor:ktor-server-netty:$ktor_version")
     compile("io.ktor:ktor-jackson:$ktor_version")
     compile("org.jdbi:jdbi3-kotlin-sqlobject:3.5.1")
+    compile("org.jdbi:jdbi3-postgres:3.5.1")
+    compile("org.jdbi:jdbi3-sqlobject:3.5.1")
     compile("org.postgresql:postgresql:42.2.5")
 
+    testCompile("com.opentable.components:otj-pg-embedded:0.11.3")
     testCompile("io.kotlintest:kotlintest-runner-junit5:3.1.10")
+    testCompile("org.flywaydb:flyway-core:5.2.3")
+    testCompile("org.jdbi:jdbi3-testing:3.5.1")
 }
 
 //TODO: Remove but make sure that tests are auto discovered.
