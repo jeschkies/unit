@@ -1,6 +1,6 @@
-package unitfm.model
+package fm.unit.model
 
-import unitfm.data.Testcase
+import fm.unit.data.Testcase
 
 data class Report(val name: String, val tests: List<Testcase>) {
 

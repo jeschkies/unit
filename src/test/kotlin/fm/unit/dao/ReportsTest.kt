@@ -1,10 +1,10 @@
-package unitfm.dao
+package fm.unit.dao
 
 import io.kotlintest.extensions.TestListener
 import io.kotlintest.matchers.collections.shouldHaveSize
 import io.kotlintest.specs.StringSpec
 import org.jdbi.v3.sqlobject.kotlin.onDemand
-import unitfm.kotlintest.listeners.JdbiLstener
+import fm.unit.kotlintest.listeners.JdbiLstener
 
 class ExampleTest : StringSpec() {
     // Setup database

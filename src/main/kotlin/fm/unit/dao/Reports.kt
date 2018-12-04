@@ -1,4 +1,4 @@
-package unitfm.dao
+package fm.unit.dao
 
 import org.jdbi.v3.sqlobject.statement.SqlQuery
 import org.jdbi.v3.sqlobject.statement.SqlUpdate

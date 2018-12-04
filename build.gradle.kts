@@ -36,7 +36,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class.java).all 
 }
 
 application {
-    mainClassName = "unitfm.UnitAppKt"
+    mainClassName = "fm.unit.UnitAppKt"
 }
 
 repositories {

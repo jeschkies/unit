@@ -1,7 +1,7 @@
-package unitfm
+package fm.unit
 
 import mu.KotlinLogging
-import unitfm.model.Report
+import fm.unit.model.Report
 
 data class ReportSummary(val name: String, val tests: Int, val errors: Int) {
 

@@ -17,7 +17,7 @@ Traceback (most recent call last):
     return (yield from handler(request))
   File &quot;/Users/karsten/.local/share/virtualenvs/unit-fFY_xGcI/lib/python3.6/site-packages/aiohttp_jinja2/__init__.py&quot;, line 88, in wrapped
     context = yield from coro(*args)
-  File &quot;/Users/karsten/Documents/unit/unitfm/main.py&quot;, line 41, in view_junit
+  File &quot;/Users/karsten/Documents/unit/fm.unit.unitfm/main.py&quot;, line 41, in view_junit
     raw_junit = request.app[&apos;junits&apos;][commit_sha]
 KeyError: &apos;unknown&apos;
 </system-err></testcase></testsuite>

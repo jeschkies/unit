@@ -1,4 +1,4 @@
-package unitfm.kotlintest.listeners
+package fm.unit.kotlintest.listeners
 
 import com.opentable.db.postgres.embedded.EmbeddedPostgres
 import io.kotlintest.Description

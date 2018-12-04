@@ -1,4 +1,4 @@
-package unitfm
+package fm.unit
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.zaxxer.hikari.HikariDataSource
@@ -67,7 +67,7 @@ fun Application.module() {
     // Database setup
     val db_user =  "kjeschkies" //System.getenv("POSTGRES_USER")
     val db_password =  "1234" //System.getenv("POSTGRES_PASSWORD")
-    val db_url = "jdbc:postgresql://localhost:5432/unitfm"
+    val db_url = "jdbc:postgresql://localhost:5432/fm.unit.unitfm"
 
     val ds = HikariDataSource()
     ds.jdbcUrl = db_url
