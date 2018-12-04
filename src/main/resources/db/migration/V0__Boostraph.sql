@@ -5,7 +5,7 @@ CREATE TABLE repositories (repository_id SERIAL PRIMARY KEY, name text NOT NULL)
 CREATE TABLE reports (
     report_id SERIAL PRIMARY KEY,
     organization_id INTEGER REFERENCES organizations(organization_id),
-    repository_id INTEGER REFERENCES organizations(organization_id),
+    repository_id INTEGER REFERENCES repositories(repository_id),
     commit_hash text NOT NULL,
     prefix text NOT NULL
 );
