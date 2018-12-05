@@ -1,19 +1,13 @@
-package unitfm
+package fm.unit
 
 import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule
-import unitfm.data.Testsuite
+import fm.unit.data.Testsuite
 import java.io.File
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import mu.KotlinLogging
-import unitfm.data.Testcase
-
-
-class Report(val name: String, val tests: List<Testcase>) {
-
-    val errors: Int = tests.count{ it.error.isNotEmpty() || it.failure.isNotEmpty() }
-}
+import fm.unit.model.Report
 
 /**
  * A repository is a S3 bucket like structure. Reports are stored with keys.
@@ -30,7 +24,7 @@ object ReportRepository {
         // Create XML object mapper with support for JAXB annotations.
         val xmlModule = JacksonXmlModule()
         xmlModule.setDefaultUseWrapper(false)
-        this.xmlMapper = XmlMapper(xmlModule)
+        xmlMapper = XmlMapper(xmlModule)
         val jaxbModule = JaxbAnnotationModule()
         xmlMapper.registerModule(jaxbModule)
     }

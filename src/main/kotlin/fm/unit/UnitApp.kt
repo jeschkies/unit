@@ -1,6 +1,7 @@
-package unitfm
+package fm.unit
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.zaxxer.hikari.HikariDataSource
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -23,8 +24,10 @@ import io.ktor.jackson.jackson
 import io.ktor.request.receiveMultipart
 import io.ktor.response.respond
 import io.ktor.routing.route
+import org.jdbi.v3.core.Jdbi
 import java.io.File
 import java.io.FileOutputStream
+
 
 fun Application.module() {
 
@@ -60,6 +63,19 @@ fun Application.module() {
         """.trimIndent())
         return content.toString()
     }
+
+    // Database setup
+    val db_user =  "kjeschkies" //System.getenv("POSTGRES_USER")
+    val db_password =  "1234" //System.getenv("POSTGRES_PASSWORD")
+    val db_url = "jdbc:postgresql://localhost:5432/fm.unit.unitfm"
+
+    val ds = HikariDataSource()
+    ds.jdbcUrl = db_url
+    ds.username = db_user
+    ds.password = db_password
+
+    val jdbi = Jdbi.create(ds)
+    jdbi.installPlugins()
 
     install(DefaultHeaders)
     install(CallLogging)

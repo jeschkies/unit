@@ -6,7 +6,7 @@
 //
 
 
-package unitfm.data;
+package fm.unit.data;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -38,8 +38,8 @@ import javax.xml.bind.annotation.XmlValue;
 @XmlType(name = "", propOrder = {
     "content"
 })
-@XmlRootElement(name = "error")
-public class Error {
+@XmlRootElement(name = "failure")
+public class Failure {
 
     @XmlValue
     protected String content;
