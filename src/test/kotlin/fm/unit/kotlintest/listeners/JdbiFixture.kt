@@ -13,7 +13,7 @@ import java.io.IOException
  *
  * It provide a Jdbi instance.
  */
-class JdbiLstener : TestListener {
+class JdbiFixture : TestListener {
     val builder = EmbeddedPostgres.builder()
     val epg: EmbeddedPostgres = builder.start()
     val dataSource = epg.postgresDatabase

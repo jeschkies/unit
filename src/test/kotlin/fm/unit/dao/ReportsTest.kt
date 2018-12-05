@@ -4,11 +4,11 @@ import io.kotlintest.extensions.TestListener
 import io.kotlintest.matchers.collections.shouldHaveSize
 import io.kotlintest.specs.StringSpec
 import org.jdbi.v3.sqlobject.kotlin.onDemand
-import fm.unit.kotlintest.listeners.JdbiLstener
+import fm.unit.kotlintest.listeners.JdbiFixture
 
 class ReportsTest: StringSpec() {
     // Setup database
-    val db = JdbiLstener()
+    val db = JdbiFixture()
     override fun listeners(): List<TestListener> = listOf(db)
 
     init {
