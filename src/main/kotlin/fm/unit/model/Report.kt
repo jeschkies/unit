@@ -1,8 +1,9 @@
 package fm.unit.model
 
-import fm.unit.data.Testcase
+/**
+ * A report belongs to a build of a repo in an organization.
+ */
+data class Report(val name: String, val testsuites: List<TestsuiteSummary>) {
 
-data class Report(val name: String, val tests: List<Testcase>) {
-
-    val errors: Int = tests.count{ it.error.isNotEmpty() || it.failure.isNotEmpty() }
+    val errors: Int = testsuites.sumBy { it.errors }
 }
