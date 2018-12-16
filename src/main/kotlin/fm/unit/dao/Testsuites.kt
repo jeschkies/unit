@@ -1,13 +1,48 @@
 package fm.unit.dao
 
+import org.jdbi.v3.core.argument.AbstractArgumentFactory
+import org.jdbi.v3.core.argument.Argument
+import org.jdbi.v3.core.config.ConfigRegistry
+import org.jdbi.v3.core.mapper.ColumnMapper
+import org.jdbi.v3.core.statement.SqlStatement
+import org.jdbi.v3.core.statement.StatementContext
+import org.jdbi.v3.sqlobject.customizer.*
 import org.jdbi.v3.sqlobject.statement.SqlUpdate
+import java.lang.annotation.ElementType
+import java.lang.annotation.RetentionPolicy
+import java.lang.reflect.Method
+import java.lang.reflect.Parameter
+import java.lang.reflect.Type
+import org.postgresql.util.PGobject
+import java.sql.PreparedStatement
+import java.sql.Types
+
 
 data class Testsuite(val report_id: Int, val filename: String)
+
+data class Payload(val load: String)
+
+//class PayloadMapper : ColumnMapper<Payload>
+
+object PayloadArgumentFactory : AbstractArgumentFactory<Payload>(Types.OTHER) {
+    class PayloadArgument(val value: Payload) : Argument {
+        override fun apply(position: Int, statement: PreparedStatement, ctx: StatementContext?) {
+            val xmlObject = PGobject()
+            xmlObject.type = "xml"
+            xmlObject.value = value.load
+            statement.setObject(position, xmlObject)
+        }
+    }
+
+    override fun build(value: Payload, config: ConfigRegistry): Argument {
+        return PayloadArgument(value)
+    }
+}
 
 interface Testsuites {
     @SqlUpdate("""
         INSERT INTO testsuites (report_id, filename, payload)
-        VALUES (:testsuite.report_id, :testsuite.filename, XMLPARSE(:payload))
+        VALUES (:testsuite.report_id, :testsuite.filename, :payload)
     """)
-    fun insert(testsuite: Testsuite, payload: String)
+    fun insert(@BindBean("testsuite") testsuite: Testsuite, @Bind("payload") payload: Payload)
 }
