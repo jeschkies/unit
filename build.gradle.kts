@@ -12,11 +12,28 @@ val jackson_version: String by project
 val hickarcp_version: String by project
 val kotlin_logging_version: String by project
 val postgresql_version: String by project
+val jdbi3_kotlin: String by project
+val otj_pg_embedded: String by project
+val kotlintest_runner_junit5: String by project
+val flywaydb: String by project
+
+buildscript {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+        maven {
+            url = uri("https://plugins.gradle.org/m2/")
+        }
+    }
+    dependencies {
+        classpath("org.postgresql:postgresql:42.2.5")
+    }
+}
 
 plugins {
     application
     java
-    kotlin("jvm") version "1.3.10"
+    kotlin("jvm") version "1.3.0"
     id("org.flywaydb.flyway") version "5.2.3"
     id("com.bmuschko.docker-remote-api") version "3.2.3"
 }
@@ -48,15 +65,15 @@ dependencies {
     compile("io.github.microutils:kotlin-logging:$kotlin_logging_version")
     compile("io.ktor:ktor-server-netty:$ktor_version")
     compile("io.ktor:ktor-jackson:$ktor_version")
-    compile("org.jdbi:jdbi3-kotlin-sqlobject:3.5.1")
-    compile("org.jdbi:jdbi3-postgres:3.5.1")
-    compile("org.jdbi:jdbi3-sqlobject:3.5.1")
+    compile("org.jdbi:jdbi3-kotlin-sqlobject:$jdbi3_kotlin")
+    compile("org.jdbi:jdbi3-postgres:$jdbi3_kotlin")
+    compile("org.jdbi:jdbi3-sqlobject:$jdbi3_kotlin")
     compile("org.postgresql:postgresql:$postgresql_version")
 
-    testCompile("com.opentable.components:otj-pg-embedded:0.11.3")
-    testCompile("io.kotlintest:kotlintest-runner-junit5:3.1.10")
-    testCompile("org.flywaydb:flyway-core:5.2.3")
-    testCompile("org.jdbi:jdbi3-testing:3.5.1")
+    testCompile("com.opentable.components:otj-pg-embedded:$otj_pg_embedded")
+    testCompile("io.kotlintest:kotlintest-runner-junit5:$kotlintest_runner_junit5")
+    testCompile("org.flywaydb:flyway-core:$flywaydb")
+    testCompile("org.jdbi:jdbi3-testing:$jdbi3_kotlin")
 }
 
 //TODO: Remove but make sure that tests are auto discovered.
