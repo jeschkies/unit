@@ -2,6 +2,7 @@ package fm.unit.dao
 
 import fm.unit.kotlintest.listeners.JdbiFixture
 import io.kotlintest.extensions.TestListener
+import io.kotlintest.matchers.collections.shouldContain
 import io.kotlintest.specs.StringSpec
 import java.io.File
 import org.jdbi.v3.sqlobject.kotlin.onDemand
@@ -31,8 +32,9 @@ class TestsuitesTest: StringSpec() {
             val xmlFile = File("fixtures/exception.xml").bufferedReader().use { it.readText() }
             suite_dao.insert(Testsuite(1, "exception.xml"), Payload(xmlFile))
 
-
-            assert(true)
+            val summaries = suite_dao.summaries()
+            println("+++ summaries: $summaries")
+            summaries shouldContain(3)
         }
     }
 }
