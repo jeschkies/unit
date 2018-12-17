@@ -5,8 +5,17 @@ import com.bmuschko.gradle.docker.tasks.container.DockerStopContainer
 import org.flywaydb.gradle.task.FlywayMigrateTask
 import java.sql.DriverManager
 
-val ktor_version = "0.9.5"
-val jackson_version = "2.9.4"
+val logback_version: String by project
+val ktor_version: String by project
+val kotlin_version: String by project
+val jackson_version: String by project
+val hickarcp_version: String by project
+val kotlin_logging_version: String by project
+val postgresql_version: String by project
+val jdbi3_kotlin: String by project
+val otj_pg_embedded: String by project
+val kotlintest_runner_junit5: String by project
+val flywaydb: String by project
 
 buildscript {
     repositories {
@@ -49,22 +58,22 @@ dependencies {
     compile(kotlin("stdlib"))
     compile(kotlin("stdlib-jdk8"))
     compile(kotlin("reflect"))
-    compile("ch.qos.logback:logback-classic:1.2.3")
+    compile("ch.qos.logback:logback-classic:$logback_version")
     compile("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson_version")
     compile( "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson_version")
-    compile("com.zaxxer:HikariCP:2.7.8")
-    compile("io.github.microutils:kotlin-logging:1.6.20")
+    compile("com.zaxxer:HikariCP:$hickarcp_version")
+    compile("io.github.microutils:kotlin-logging:$kotlin_logging_version")
     compile("io.ktor:ktor-server-netty:$ktor_version")
     compile("io.ktor:ktor-jackson:$ktor_version")
-    compile("org.jdbi:jdbi3-kotlin-sqlobject:3.5.1")
-    compile("org.jdbi:jdbi3-postgres:3.5.1")
-    compile("org.jdbi:jdbi3-sqlobject:3.5.1")
-    compile("org.postgresql:postgresql:42.2.5")
+    compile("org.jdbi:jdbi3-kotlin-sqlobject:$jdbi3_kotlin")
+    compile("org.jdbi:jdbi3-postgres:$jdbi3_kotlin")
+    compile("org.jdbi:jdbi3-sqlobject:$jdbi3_kotlin")
+    compile("org.postgresql:postgresql:$postgresql_version")
 
-    testCompile("com.opentable.components:otj-pg-embedded:0.11.3")
-    testCompile("io.kotlintest:kotlintest-runner-junit5:3.1.10")
-    testCompile("org.flywaydb:flyway-core:5.2.3")
-    testCompile("org.jdbi:jdbi3-testing:3.5.1")
+    testCompile("com.opentable.components:otj-pg-embedded:$otj_pg_embedded")
+    testCompile("io.kotlintest:kotlintest-runner-junit5:$kotlintest_runner_junit5")
+    testCompile("org.flywaydb:flyway-core:$flywaydb")
+    testCompile("org.jdbi:jdbi3-testing:$jdbi3_kotlin")
 }
 
 //TODO: Remove but make sure that tests are auto discovered.
