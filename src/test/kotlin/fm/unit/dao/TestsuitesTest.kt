@@ -33,8 +33,7 @@ class TestsuitesTest: StringSpec() {
             suite_dao.insert(Testsuite(1, "exception.xml"), Payload(xmlFile))
 
             val summaries = suite_dao.summaries()
-            println("+++ summaries: $summaries")
-            summaries shouldContain(3)
+            summaries shouldContain(TestsuiteSummary(3, 1))
         }
     }
 }

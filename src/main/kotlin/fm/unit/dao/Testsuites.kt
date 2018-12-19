@@ -3,17 +3,10 @@ package fm.unit.dao
 import org.jdbi.v3.core.argument.AbstractArgumentFactory
 import org.jdbi.v3.core.argument.Argument
 import org.jdbi.v3.core.config.ConfigRegistry
-import org.jdbi.v3.core.mapper.ColumnMapper
-import org.jdbi.v3.core.statement.SqlStatement
 import org.jdbi.v3.core.statement.StatementContext
 import org.jdbi.v3.sqlobject.customizer.*
 import org.jdbi.v3.sqlobject.statement.SqlQuery
 import org.jdbi.v3.sqlobject.statement.SqlUpdate
-import java.lang.annotation.ElementType
-import java.lang.annotation.RetentionPolicy
-import java.lang.reflect.Method
-import java.lang.reflect.Parameter
-import java.lang.reflect.Type
 import org.postgresql.util.PGobject
 import java.sql.PreparedStatement
 import java.sql.Types
@@ -24,8 +17,6 @@ data class Testsuite(val report_id: Int, val filename: String)
 data class Payload(val load: String)
 
 data class TestsuiteSummary(val tests: Int, val errors: Int)
-
-//class PayloadMapper : ColumnMapper<Payload>
 
 object PayloadArgumentFactory : AbstractArgumentFactory<Payload>(Types.OTHER) {
     class PayloadArgument(val value: Payload) : Argument {
@@ -49,6 +40,10 @@ interface Testsuites {
     """)
     fun insert(@BindBean("testsuite") testsuite: Testsuite, @Bind("payload") payload: Payload)
 
-    @SqlQuery("SELECT (xpath('count(//testcase)', payload))[1] FROM testsuites")
-    fun summaries(): List<Int>
+    @SqlQuery("""
+        SELECT (xpath('count(//testcase)', payload))[1] AS tests,
+               (xpath('count(//failure)', payload))[1] AS errors
+        FROM testsuites
+    """)
+    fun summaries(): List<TestsuiteSummary>
 }
