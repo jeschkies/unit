@@ -1,6 +1,9 @@
 package fm.unit.dao
 
 import fm.unit.kotlintest.listeners.JdbiFixture
+import fm.unit.model.Payload
+import fm.unit.model.Testsuite
+import fm.unit.model.TestsuiteSummary
 import io.kotlintest.extensions.TestListener
 import io.kotlintest.matchers.collections.shouldContain
 import io.kotlintest.specs.StringSpec

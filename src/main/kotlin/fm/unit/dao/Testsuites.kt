@@ -1,5 +1,8 @@
 package fm.unit.dao
 
+import fm.unit.model.Payload
+import fm.unit.model.Testsuite
+import fm.unit.model.TestsuiteSummary
 import org.jdbi.v3.core.argument.AbstractArgumentFactory
 import org.jdbi.v3.core.argument.Argument
 import org.jdbi.v3.core.config.ConfigRegistry
@@ -11,12 +14,6 @@ import org.postgresql.util.PGobject
 import java.sql.PreparedStatement
 import java.sql.Types
 
-
-data class Testsuite(val report_id: Int, val filename: String)
-
-data class Payload(val load: String)
-
-data class TestsuiteSummary(val tests: Int, val errors: Int)
 
 object PayloadArgumentFactory : AbstractArgumentFactory<Payload>(Types.OTHER) {
     class PayloadArgument(val value: Payload) : Argument {
