@@ -3,6 +3,7 @@ package fm.unit.dao
 import org.jdbi.v3.core.mapper.Nested
 import org.jdbi.v3.core.mapper.reflect.ColumnName
 import org.jdbi.v3.sqlobject.customizer.BindBean
+import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys
 import org.jdbi.v3.sqlobject.statement.SqlQuery
 import org.jdbi.v3.sqlobject.statement.SqlUpdate
 
@@ -18,6 +19,7 @@ interface Reports {
         INSERT INTO reports (organization_id, repository_id, commit_hash, prefix)
         VALUES (:organization_id, :repository_id, :commit_hash, :prefix)
     """)
+    @GetGeneratedKeys
     fun insert(organization_id: Int, repository_id: Int, commit_hash: String, prefix: String): Int
 
     // TODO(karsten): join with testsuites.

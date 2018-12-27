@@ -2,8 +2,7 @@ package fm.unit
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.zaxxer.hikari.HikariDataSource
-import fm.unit.dao.Reports
-import fm.unit.dao.Testsuites
+import fm.unit.dao.*
 import fm.unit.model.Payload
 import fm.unit.model.ProjectSummary
 import fm.unit.model.Report
@@ -30,6 +29,7 @@ import io.ktor.routing.route
 import kotlinx.coroutines.runBlocking
 import org.jdbi.v3.core.Jdbi
 import org.jdbi.v3.sqlobject.kotlin.attach
+import org.jdbi.v3.sqlobject.kotlin.onDemand
 import java.io.File
 import java.io.FileOutputStream
 import java.lang.Exception
@@ -73,7 +73,7 @@ fun Application.module() {
     // Database setup
     val db_user =  "kjeschkies" //System.getenv("POSTGRES_USER")
     val db_password =  "1234" //System.getenv("POSTGRES_PASSWORD")
-    val db_url = "jdbc:postgresql://localhost:5432/fm.unit.unitfm"
+    val db_url = "jdbc:postgresql://localhost:5432/unitfm"
 
     // TODO(karsten): Fail fast when connection to databse cannot be established.
     val ds = HikariDataSource()
@@ -83,6 +83,7 @@ fun Application.module() {
 
     val jdbi = Jdbi.create(ds)
     jdbi.installPlugins()
+    jdbi.registerArgument(PayloadArgumentFactory)
 
     /**
      * Extract posted JUnit XML files and commit hash from multi part upload data.
@@ -112,12 +113,12 @@ fun Application.module() {
     /**
      * Save report for given prefix and commit hash.
      */
-    fun saveReport(prefix: String, commit_hash: String, suites: List<Testsuite>): Unit {
+    fun saveReport(org_id: Int, repo_id: Int, prefix: String, commit_hash: String, suites: List<Testsuite>): Unit {
         jdbi.inTransaction<Unit, Exception> {
             val report_dao = it.attach<Reports>()
             val suite_dao = it.attach<Testsuites>()
 
-            val report_id = report_dao.insert(0, 0, commit_hash, prefix)
+            val report_id = report_dao.insert(org_id, repo_id, commit_hash, prefix)
             suites.forEach {
                 suite_dao.insert(report_id, it)
             }
@@ -155,9 +156,13 @@ fun Application.module() {
                 val repository = call.parameters["repository"]
                 val prefix = call.parameters["prefix"] ?: ""
 
+                // TODO(karsten): Get ids by name.
+                val org_id = jdbi.onDemand<Organizations>().insert("jeschkies")
+                val repo_id = jdbi.onDemand<Repositories>().insert("unit")
+
                 val multipart = call.receiveMultipart()
                 val (commit_hash, suites) = readPostedReport(multipart)
-                runBlocking { saveReport(prefix, commit_hash, suites) }
+                runBlocking { saveReport(org_id, repo_id, prefix, commit_hash, suites) }
 
                 call.respond(HttpStatusCode.Created)
             }

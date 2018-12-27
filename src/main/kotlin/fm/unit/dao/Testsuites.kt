@@ -8,6 +8,7 @@ import org.jdbi.v3.core.argument.Argument
 import org.jdbi.v3.core.config.ConfigRegistry
 import org.jdbi.v3.core.statement.StatementContext
 import org.jdbi.v3.sqlobject.customizer.*
+import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys
 import org.jdbi.v3.sqlobject.statement.SqlQuery
 import org.jdbi.v3.sqlobject.statement.SqlUpdate
 import org.postgresql.util.PGobject
@@ -35,7 +36,8 @@ interface Testsuites {
         INSERT INTO testsuites (report_id, filename, payload)
         VALUES (:report_id, :testsuite.filename, :testsuite.payload)
     """)
-    fun insert(@Bind("report_id") report_id: Int, @BindBean("testsuite") testsuite: Testsuite)
+    @GetGeneratedKeys
+    fun insert(@Bind("report_id") report_id: Int, @BindBean("testsuite") testsuite: Testsuite): Int
 
     @SqlQuery("""
         SELECT (xpath('count(//testcase)', payload))[1] AS tests,
