@@ -81,9 +81,9 @@ tasks.withType<Test> {
     useJUnitPlatform {}
 }
 
-val db_user = "kjeschkies"
-val db_password = "1234" // TODO: pull from environment.
-val database = "unitfm"
+val db_user = System.getenv("POSTGRES_USER") ?: "kjeschkies"
+val db_password = System.getenv("POSTGRES_PASSWORD") ?: "1234"
+val database = System.getenv("POSTGRES_DATABASE") ?: "unitfm"
 
 tasks {
 

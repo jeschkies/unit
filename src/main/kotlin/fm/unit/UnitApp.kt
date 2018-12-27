@@ -71,9 +71,10 @@ fun Application.module() {
     }
 
     // Database setup
-    val db_user =  "kjeschkies" //System.getenv("POSTGRES_USER")
-    val db_password =  "1234" //System.getenv("POSTGRES_PASSWORD")
-    val db_url = "jdbc:postgresql://localhost:5432/unitfm"
+    val db_user =  System.getenv("POSTGRES_USER") ?: "kjeschkies"
+    val db_password =  System.getenv("POSTGRES_PASSWORD") ?: "1234"
+    val db_name = System.getenv("POSTGRES_DATABASE") ?: "unitfm"
+    val db_url = "jdbc:postgresql://localhost:5432/$db_name"
 
     // TODO(karsten): Fail fast when connection to databse cannot be established.
     val ds = HikariDataSource()
