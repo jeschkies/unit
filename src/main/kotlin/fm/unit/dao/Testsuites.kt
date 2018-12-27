@@ -33,9 +33,9 @@ object PayloadArgumentFactory : AbstractArgumentFactory<Payload>(Types.OTHER) {
 interface Testsuites {
     @SqlUpdate("""
         INSERT INTO testsuites (report_id, filename, payload)
-        VALUES (:testsuite.report_id, :testsuite.filename, :payload)
+        VALUES (:report_id, :testsuite.filename, :testsuite.payload)
     """)
-    fun insert(@BindBean("testsuite") testsuite: Testsuite, @Bind("payload") payload: Payload)
+    fun insert(@Bind("report_id") report_id: Int, @BindBean("testsuite") testsuite: Testsuite)
 
     @SqlQuery("""
         SELECT (xpath('count(//testcase)', payload))[1] AS tests,

@@ -18,7 +18,7 @@ interface Reports {
         INSERT INTO reports (organization_id, repository_id, commit_hash, prefix)
         VALUES (:organization_id, :repository_id, :commit_hash, :prefix)
     """)
-    fun insert(@BindBean report: Report)
+    fun insert(organization_id: Int, repository_id: Int, commit_hash: String, prefix: String): Int
 
     // TODO(karsten): join with testsuites.
     @SqlQuery("SELECT * FROM reports ORDER BY report_id")

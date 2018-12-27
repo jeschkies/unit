@@ -2,8 +2,12 @@ package fm.unit
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.zaxxer.hikari.HikariDataSource
+import fm.unit.dao.Reports
+import fm.unit.dao.Testsuites
+import fm.unit.model.Payload
 import fm.unit.model.ProjectSummary
 import fm.unit.model.Report
+import fm.unit.model.Testsuite
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -18,17 +22,17 @@ import io.ktor.routing.post
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.content.PartData
-import io.ktor.http.content.files
-import io.ktor.http.content.static
-import io.ktor.http.content.streamProvider
+import io.ktor.http.content.*
 import io.ktor.jackson.jackson
 import io.ktor.request.receiveMultipart
 import io.ktor.response.respond
 import io.ktor.routing.route
+import kotlinx.coroutines.runBlocking
 import org.jdbi.v3.core.Jdbi
+import org.jdbi.v3.sqlobject.kotlin.attach
 import java.io.File
 import java.io.FileOutputStream
+import java.lang.Exception
 
 
 fun Application.module() {
@@ -71,6 +75,7 @@ fun Application.module() {
     val db_password =  "1234" //System.getenv("POSTGRES_PASSWORD")
     val db_url = "jdbc:postgresql://localhost:5432/fm.unit.unitfm"
 
+    // TODO(karsten): Fail fast when connection to databse cannot be established.
     val ds = HikariDataSource()
     ds.jdbcUrl = db_url
     ds.username = db_user
@@ -78,6 +83,46 @@ fun Application.module() {
 
     val jdbi = Jdbi.create(ds)
     jdbi.installPlugins()
+
+    /**
+     * Extract posted JUnit XML files and commit hash from multi part upload data.
+     */
+    suspend fun readPostedReport(multipart: MultiPartData): Pair<String, List<Testsuite>> {
+        var commit: String? = null
+        val suites = mutableListOf<Testsuite>()
+        while (true) {
+            val part = multipart.readPart() ?: break
+
+            when (part) {
+                is PartData.FormItem ->
+                    if (part.name == "commit") {
+                        commit = part.value
+                    }
+                is PartData.FileItem -> {
+                    val payload = Payload(part.streamProvider().bufferedReader().use { it.readText() })
+                    val suite = Testsuite( part.originalFileName ?: "", payload)
+                    suites.add(suite)
+                }
+            }
+        }
+
+        return Pair(commit ?: "", suites.toList())
+    }
+
+    /**
+     * Save report for given prefix and commit hash.
+     */
+    fun saveReport(prefix: String, commit_hash: String, suites: List<Testsuite>): Unit {
+        jdbi.inTransaction<Unit, Exception> {
+            val report_dao = it.attach<Reports>()
+            val suite_dao = it.attach<Testsuites>()
+
+            val report_id = report_dao.insert(0, 0, commit_hash, prefix)
+            suites.forEach {
+                suite_dao.insert(report_id, it)
+            }
+        }
+    }
 
     install(DefaultHeaders)
     install(CallLogging)
@@ -93,36 +138,27 @@ fun Application.module() {
         static("/static") {
             files("static")
         }
-        route("/reports") {
-            get("{key...}") {
-                // TODO(karsten): Lots of error handling and we don't support arbitrary prefix depth.
-                val key = call.parameters.getAll("key")?.joinToString("/") ?: ""
+        route("/reports/{organization}/{repository}/{prefix}") {
+
+            get {
+                val organization = call.parameters["organization"]
+                val repository = call.parameters["repository"]
+                val prefix = call.parameters["prefix"]
 
                 val reports = emptyList<Report>()// TODO(karsten): fetch from database
                 val summary = ProjectSummary(reports)
                 call.respondText(template(summary), ContentType.Text.Html)
             }
-            post("{key...}") {
-                val key = call.parameters.getAll("key")?.joinToString("/") ?: ""
+
+            post {
+                val organization = call.parameters["organization"]
+                val repository = call.parameters["repository"]
+                val prefix = call.parameters["prefix"] ?: ""
 
                 val multipart = call.receiveMultipart()
+                val (commit_hash, suites) = readPostedReport(multipart)
+                runBlocking { saveReport(prefix, commit_hash, suites) }
 
-                var commit: String? = null
-                while (true) {
-                    val part = multipart.readPart() ?: break
-
-                    when(part) {
-                        is PartData.FormItem ->
-                            if (part.name == "commit") {
-                                commit = part.value
-                            }
-                        is PartData.FileItem -> {
-                            // TODO(karsten): Insert into database
-                            //val file = File(reportFolder, part.originalFileName)
-                            //part.streamProvider().copyTo(FileOutputStream(file))
-                        }
-                    }
-                }
                 call.respond(HttpStatusCode.Created)
             }
         }
