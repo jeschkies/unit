@@ -110,21 +110,6 @@ fun Application.module() {
         return Pair(commit ?: "", suites.toList())
     }
 
-    /**
-     * Save report for given prefix and commit hash.
-     */
-    fun saveReport(org_id: Int, repo_id: Int, prefix: String, commit_hash: String, suites: List<Testsuite>): Unit {
-        jdbi.inTransaction<Unit, Exception> {
-            val report_dao = it.attach<Reports>()
-            val suite_dao = it.attach<Testsuites>()
-
-            val report_id = report_dao.insert(org_id, repo_id, commit_hash, prefix)
-            suites.forEach {
-                suite_dao.insert(report_id, it)
-            }
-        }
-    }
-
     install(DefaultHeaders)
     install(CallLogging)
     install(ContentNegotiation) {
@@ -162,7 +147,9 @@ fun Application.module() {
 
                 val multipart = call.receiveMultipart()
                 val (commit_hash, suites) = readPostedReport(multipart)
-                runBlocking { saveReport(org_id, repo_id, prefix, commit_hash, suites) }
+                runBlocking {
+                    jdbi.onDemand<Reports>().insert(org_id, repo_id, prefix, commit_hash, suites)
+                }
 
                 call.respond(HttpStatusCode.Created)
             }
