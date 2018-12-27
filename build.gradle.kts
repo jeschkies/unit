@@ -16,6 +16,7 @@ val jdbi3_kotlin: String by project
 val otj_pg_embedded: String by project
 val kotlintest_runner_junit5: String by project
 val flywaydb: String by project
+val velocity_engine_core: String by project
 
 buildscript {
     repositories {
@@ -69,6 +70,7 @@ dependencies {
     compile("org.jdbi:jdbi3-postgres:$jdbi3_kotlin")
     compile("org.jdbi:jdbi3-sqlobject:$jdbi3_kotlin")
     compile("org.postgresql:postgresql:$postgresql_version")
+    compile("org.apache.velocity:velocity-engine-core:$velocity_engine_core")
 
     testCompile("com.opentable.components:otj-pg-embedded:$otj_pg_embedded")
     testCompile("io.kotlintest:kotlintest-runner-junit5:$kotlintest_runner_junit5")
