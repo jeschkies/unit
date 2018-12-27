@@ -32,6 +32,14 @@ object PayloadArgumentFactory : AbstractArgumentFactory<Payload>(Types.OTHER) {
 }
 
 interface Testsuites {
+
+    /**
+     * Insert a testsuite, ie JUnit XML file, for a report.
+     *
+     * @param report_id The report this testsuite is for.
+     * @param testsuite The testsuite JUnit [[fm.unit.model.Payload]].
+     * @return The id of the inserted testsuite.
+     */
     @SqlUpdate("""
         INSERT INTO testsuites (report_id, filename, payload)
         VALUES (:report_id, :testsuite.filename, :testsuite.payload)
@@ -39,6 +47,11 @@ interface Testsuites {
     @GetGeneratedKeys
     fun insert(@Bind("report_id") report_id: Int, @BindBean("testsuite") testsuite: Testsuite): Int
 
+    /**
+     * Lists all testsuites.
+     *
+     * @return A summary of each testsuite.
+     */
     @SqlQuery("""
         SELECT (xpath('count(//testcase)', payload))[1] AS tests,
                (xpath('count(//failure)', payload))[1] AS errors

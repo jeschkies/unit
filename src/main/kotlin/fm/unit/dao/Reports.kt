@@ -15,6 +15,17 @@ data class Report(
         val prefix: String)
 
 interface Reports {
+    /**
+     * Insert a new report.
+     *
+     * Note that the report is empty unless testsuites are inserted that belong to this report.
+     *
+     * @param organization_id The organization of this report.
+     * @param repository_id The repository this report belongs to.
+     * @param commit_hash The commit the report belongs to.
+     * @param prefix A common prefix to group reports, e.g. `system-test`.
+     * @return The id of the inserted report.
+     */
     @SqlUpdate("""
         INSERT INTO reports (organization_id, repository_id, commit_hash, prefix)
         VALUES (:organization_id, :repository_id, :commit_hash, :prefix)
