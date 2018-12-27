@@ -3,6 +3,7 @@ import com.bmuschko.gradle.docker.tasks.container.DockerCreateContainer
 import com.bmuschko.gradle.docker.tasks.container.DockerStartContainer
 import com.bmuschko.gradle.docker.tasks.container.DockerStopContainer
 import org.flywaydb.gradle.task.FlywayMigrateTask
+import us.kirchmeier.capsule.task.FatCapsule
 import java.sql.DriverManager
 
 val logback_version: String by project
@@ -36,6 +37,7 @@ plugins {
     kotlin("jvm") version "1.3.0"
     id("org.flywaydb.flyway") version "5.2.3"
     id("com.bmuschko.docker-remote-api") version "3.2.3"
+    id("us.kirchmeier.capsule") version "1.0.2"
 }
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class.java).all {
@@ -87,6 +89,19 @@ val database = "unitfm"
 
 tasks {
 
+    /**
+     * Produces a fat jar in build/libs/unit-capsule.jar.
+     *
+     * Start with `java -jar unit-capsule.jar`.
+     *
+     * See http://www.capsule.io for details.
+     */
+    val capsule by creating(FatCapsule::class ) {
+        group = "Distribution"
+        description = "Assemble app in fat jar."
+        applicationClass("fm.unit.UnitAppKt")
+    }
+
     val postgresImage by creating(DockerPullImage::class) {
         repository = "postgres"
         tag = "10.5-alpine"
@@ -117,6 +132,9 @@ tasks {
         }
     }
 
+    /**
+     * Migrate a local PostgreSql database.
+     */
     val migrateDatabase by creating(FlywayMigrateTask::class) {
         dependsOn(createDatabase)
         url = "jdbc:postgresql://localhost:5432/$database"
