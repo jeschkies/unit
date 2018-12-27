@@ -2,6 +2,8 @@ package fm.unit
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.zaxxer.hikari.HikariDataSource
+import fm.unit.model.ProjectSummary
+import fm.unit.model.Report
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -31,7 +33,7 @@ import java.io.FileOutputStream
 
 fun Application.module() {
 
-    fun template(summary: Summary): String {
+    fun template(summary: ProjectSummary): String {
         val content = StringBuilder()
         content.append("""
                 <!DOCTYPE html>
@@ -45,8 +47,8 @@ fun Application.module() {
 
                 <svg width="100%" height="100%">
                 """.trimIndent())
-        summary.reportSummaries.forEachIndexed { i, summary ->
-            val outcome = if (summary.errors == 0 ) "success" else "failure"
+        summary.reports.forEachIndexed { i, report ->
+            val outcome = if (report.errors == 0 ) "success" else "failure"
             val x = i * 10
             content.append("""
                     <g class="build" x="10">
@@ -96,8 +98,8 @@ fun Application.module() {
                 // TODO(karsten): Lots of error handling and we don't support arbitrary prefix depth.
                 val key = call.parameters.getAll("key")?.joinToString("/") ?: ""
 
-                val reports = ReportRepository.getReports(key).sortedBy { it.name }
-                val summary = Summary(reports)
+                val reports = emptyList<Report>()// TODO(karsten): fetch from database
+                val summary = ProjectSummary(reports)
                 call.respondText(template(summary), ContentType.Text.Html)
             }
             post("{key...}") {
@@ -106,7 +108,6 @@ fun Application.module() {
                 val multipart = call.receiveMultipart()
 
                 var commit: String? = null
-                val reportFolder = ReportRepository.createReport(key)
                 while (true) {
                     val part = multipart.readPart() ?: break
 
@@ -116,9 +117,9 @@ fun Application.module() {
                                 commit = part.value
                             }
                         is PartData.FileItem -> {
-                            // TODO(karsten): Check if file exists
-                            val file = File(reportFolder, part.originalFileName)
-                            part.streamProvider().copyTo(FileOutputStream(file))
+                            // TODO(karsten): Insert into database
+                            //val file = File(reportFolder, part.originalFileName)
+                            //part.streamProvider().copyTo(FileOutputStream(file))
                         }
                     }
                 }
