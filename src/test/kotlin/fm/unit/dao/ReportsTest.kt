@@ -5,6 +5,7 @@ import io.kotlintest.matchers.collections.shouldHaveSize
 import io.kotlintest.specs.StringSpec
 import org.jdbi.v3.sqlobject.kotlin.onDemand
 import fm.unit.kotlintest.listeners.JdbiFixture
+import io.kotlintest.shouldBe
 
 class ReportsTest: StringSpec() {
     // Setup database
@@ -15,15 +16,21 @@ class ReportsTest: StringSpec() {
         "Reports DAO roundtrip" {
 
             val org_dao = db.jdbi.onDemand<Organizations>()
-            org_dao.insert("jeschkies")
+            val org_id = org_dao.create("jeschkies")
+
+            org_dao.read("unknown") shouldBe (null)
+            org_dao.read("jeschkies") shouldBe (org_id)
 
             val repo_dao = db.jdbi.onDemand<Repositories>()
-            repo_dao.insert("unit")
+            val repo_id = repo_dao.create("unit")
+
+            repo_dao.read("unknown") shouldBe (null)
+            repo_dao.read("unit") shouldBe (repo_id)
 
             val dao = db.jdbi.onDemand<Reports>()
 
-            dao.insert(Report(0, 1, 1,"deadbeaf", "/jeschkies/unit"))
-            dao.insert(Report(0, 1, 1,"12345678", "/jeschkies/unit"))
+            dao.create(org_id, repo_id, "deadbeaf", "/jeschkies/unit")
+            dao.create(org_id, repo_id,"12345678", "/jeschkies/unit")
 
             dao.reports() shouldHaveSize (2)
         }

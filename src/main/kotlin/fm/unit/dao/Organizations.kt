@@ -1,8 +1,25 @@
 package fm.unit.dao
 
+import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys
+import org.jdbi.v3.sqlobject.statement.SqlQuery
 import org.jdbi.v3.sqlobject.statement.SqlUpdate
 
 interface Organizations {
+    /**
+     * Insert a new organization.
+     *
+     * @param name The name of the organization.
+     * @return The id of the inserted organization.
+     */
     @SqlUpdate("INSERT INTO organizations (name) VALUES (?)")
-    fun insert(name: String)
+    @GetGeneratedKeys
+    fun create(name: String): Int
+
+    /**
+     * Fetches an organization by name.
+     *
+     * @return Maybe the organization id or null.
+     */
+    @SqlQuery("SELECT organization_id from organizations WHERE name = ?")
+    fun read(name: String): Int?
 }

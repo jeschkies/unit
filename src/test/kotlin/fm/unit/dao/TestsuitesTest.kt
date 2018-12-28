@@ -1,15 +1,12 @@
 package fm.unit.dao
 
 import fm.unit.kotlintest.listeners.JdbiFixture
-import fm.unit.model.Payload
 import fm.unit.model.Testsuite
-import fm.unit.model.TestsuiteSummary
 import io.kotlintest.extensions.TestListener
 import io.kotlintest.matchers.collections.shouldContain
 import io.kotlintest.specs.StringSpec
 import java.io.File
 import org.jdbi.v3.sqlobject.kotlin.onDemand
-
 
 
 class TestsuitesTest: StringSpec() {
@@ -23,20 +20,20 @@ class TestsuitesTest: StringSpec() {
             db.jdbi.registerArgument(PayloadArgumentFactory)
 
             val org_dao = db.jdbi.onDemand<Organizations>()
-            org_dao.insert("jeschkies")
+            val org_id = org_dao.create("jeschkies")
 
             val repo_dao = db.jdbi.onDemand<Repositories>()
-            repo_dao.insert("unit")
+            val repo_id = repo_dao.create("unit")
 
             val reports_dao = db.jdbi.onDemand<Reports>()
-            reports_dao.insert(Report(0, 1, 1,"deadbeaf", "/jeschkies/unit"))
+            val report_id = reports_dao.create(org_id, repo_id,"deadbeaf", "/jeschkies/unit")
 
             val suite_dao = db.jdbi.onDemand<Testsuites>()
             val xmlFile = File("fixtures/exception.xml").bufferedReader().use { it.readText() }
-            suite_dao.insert(Testsuite(1, "exception.xml"), Payload(xmlFile))
+            suite_dao.create(report_id, Testsuite("exception.xml", Testsuite.Payload(xmlFile)))
 
             val summaries = suite_dao.summaries()
-            summaries shouldContain(TestsuiteSummary(3, 1))
+            summaries shouldContain(Testsuite.Summary(3, 1))
         }
     }
 }

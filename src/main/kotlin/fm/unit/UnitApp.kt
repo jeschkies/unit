@@ -2,9 +2,13 @@ package fm.unit
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.zaxxer.hikari.HikariDataSource
+import fm.unit.dao.Organizations
+import fm.unit.dao.PayloadArgumentFactory
+import fm.unit.dao.Reports
+import fm.unit.dao.Repositories
 import fm.unit.model.ProjectSummary
 import fm.unit.model.Report
-import fm.unit.model.TestsuiteSummary
+import fm.unit.model.Testsuite
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -13,9 +17,11 @@ import io.ktor.features.ContentNegotiation
 import io.ktor.features.DefaultHeaders
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.MultiPartData
 import io.ktor.http.content.PartData
 import io.ktor.http.content.files
 import io.ktor.http.content.static
+import io.ktor.http.content.streamProvider
 import io.ktor.jackson.jackson
 import io.ktor.request.receiveMultipart
 import io.ktor.response.respond
@@ -28,8 +34,10 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.velocity.Velocity
 import io.ktor.velocity.VelocityContent
+import kotlinx.coroutines.runBlocking
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader
 import org.jdbi.v3.core.Jdbi
+import org.jdbi.v3.sqlobject.kotlin.onDemand
 import kotlin.random.Random
 
 
@@ -39,9 +47,9 @@ fun Application.module() {
      * For DEBUGging purposes only. Method generates a list of fake reports to be able to test template generation locally
      */
     fun testReports(random: Random = Random(1)): List<Report> {
-        fun summaries(random: Random): List<TestsuiteSummary> {
+        fun summaries(random: Random): List<Testsuite.Summary> {
             return (0..random.nextInt(10)).map {
-                TestsuiteSummary(tests = random.nextInt(1, 10), errors = random.nextInt(2))
+                Testsuite.Summary(tests = random.nextInt(1, 10), errors = random.nextInt(2))
             }
         }
 
@@ -56,11 +64,13 @@ fun Application.module() {
 
     /**
      * Database setup
-     */
-    val db_user =  "kjeschkies" //System.getenv("POSTGRES_USER")
-    val db_password =  "1234" //System.getenv("POSTGRES_PASSWORD")
-    val db_url = "jdbc:postgresql://localhost:5432/fm.unit.unitfm"
+      */
+    val db_user =  System.getenv("POSTGRES_USER") ?: "kjeschkies"
+    val db_password =  System.getenv("POSTGRES_PASSWORD") ?: "1234"
+    val db_name = System.getenv("POSTGRES_DATABASE") ?: "unitfm"
+    val db_url = "jdbc:postgresql://localhost:5432/$db_name"
 
+    // TODO(karsten): Fail fast when connection to database cannot be established.
     val ds = HikariDataSource()
     ds.jdbcUrl = db_url
     ds.username = db_user
@@ -68,6 +78,32 @@ fun Application.module() {
 
     val jdbi = Jdbi.create(ds)
     jdbi.installPlugins()
+    jdbi.registerArgument(PayloadArgumentFactory)
+
+    /**
+     * Extract posted JUnit XML files and commit hash from multi part upload data.
+     */
+    suspend fun readPostedReport(multipart: MultiPartData): Pair<String, List<Testsuite>> {
+        var commit: String? = null
+        val suites = mutableListOf<Testsuite>()
+        while (true) {
+            val part = multipart.readPart() ?: break
+
+            when (part) {
+                is PartData.FormItem ->
+                    if (part.name == "commit") {
+                        commit = part.value
+                    }
+                is PartData.FileItem -> {
+                    val payload = Testsuite.Payload(part.streamProvider().bufferedReader().use { it.readText() })
+                    val suite = Testsuite( part.originalFileName ?: "", payload)
+                    suites.add(suite)
+                }
+            }
+        }
+
+        return Pair(commit ?: "", suites.toList())
+    }
 
     install(DefaultHeaders)
     install(CallLogging)
@@ -76,7 +112,7 @@ fun Application.module() {
             registerModule(JavaTimeModule()) // support java.time.* types
         }
     }
-    install(Velocity) { // this: VelocityEngine
+    install(Velocity) {
         // Resource loader
         setProperty("resource.loader", "class");
         addProperty("class.resource.loader.class", ClasspathResourceLoader::class.java.name)
@@ -93,37 +129,45 @@ fun Application.module() {
         static("/static") {
             files("static")
         }
-        route("/reports") {
-            get("{key...}") {
-                // TODO(karsten): Lots of error handling and we don't support arbitrary prefix depth.
-                val key = call.parameters.getAll("key")?.joinToString("/") ?: ""
+        route("/{organization}/{repository}/{prefix}/reports") {
 
-                val reports = testReports()// TODO(karsten): fetch from database
-                val summary = ProjectSummary(reports)
-                call.respond(template(summary))
-            }
-            post("{key...}") {
-                val key = call.parameters.getAll("key")?.joinToString("/") ?: ""
+            get {
+                val organization = call.parameters["organization"]!!
+                val repository = call.parameters["repository"]!!
+                val prefix = call.parameters["prefix"]!!
 
-                val multipart = call.receiveMultipart()
+                val orgId = jdbi.onDemand<Organizations>().read(organization)
+                val repoId = jdbi.onDemand<Repositories>().read(repository)
 
-                var commit: String? = null
-                while (true) {
-                    val part = multipart.readPart() ?: break
-
-                    when(part) {
-                        is PartData.FormItem ->
-                            if (part.name == "commit") {
-                                commit = part.value
-                            }
-                        is PartData.FileItem -> {
-                            // TODO(karsten): Insert into database
-                            //val file = File(reportFolder, part.originalFileName)
-                            //part.streamProvider().copyTo(FileOutputStream(file))
-                        }
-                    }
+                if (orgId == null || repoId == null) {
+                    call.respond(HttpStatusCode.NotFound)
+                } else {
+                    val reports = testReports()// TODO(karsten): fetch from database
+                    val summary = ProjectSummary(reports)
+                    call.respond(template(summary))
                 }
-                call.respond(HttpStatusCode.Created)
+            }
+
+            post {
+                val organization = call.parameters["organization"]!!
+                val repository = call.parameters["repository"]!!
+                val prefix = call.parameters["prefix"]!!
+
+                val orgId = jdbi.onDemand<Organizations>().read(organization)
+                val repoId = jdbi.onDemand<Repositories>().read(repository)
+
+                if (orgId == null || repoId == null) {
+                    call.respond(HttpStatusCode.NotFound)
+                } else {
+
+                    val multipart = call.receiveMultipart()
+                    val (commit_hash, suites) = readPostedReport(multipart)
+                    runBlocking {
+                        jdbi.onDemand<Reports>().create(orgId, repoId, prefix, commit_hash, suites)
+                    }
+
+                    call.respond(HttpStatusCode.Created)
+                }
             }
         }
     }
