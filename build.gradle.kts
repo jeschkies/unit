@@ -113,7 +113,12 @@ tasks {
         doFirst {
             val c = DriverManager.getConnection("jdbc:postgresql://localhost:5432/", db_user, db_password)
             val statement = c.createStatement()
-            statement.executeUpdate("CREATE DATABASE $database")
+            val result = statement.executeQuery("SELECT COUNT(*) FROM pg_database WHERE datname='$database'")
+            result.next()
+            if (result.getInt(1) == 0) {
+                statement.executeUpdate("CREATE DATABASE $database")
+            }
+            c.close()
         }
     }
 
@@ -122,5 +127,19 @@ tasks {
         url = "jdbc:postgresql://localhost:5432/$database"
         user = db_user
         password = db_password
+    }
+
+    val populateDatabase by creating {
+        description = "Populates a test database with some test data"
+        dependsOn(migrateDatabase)
+        doLast {
+            val c = DriverManager.getConnection("jdbc:postgresql://localhost:5432/$database", db_user, db_password)
+            val statement = c.createStatement()
+            statement.execute("""
+                INSERT INTO organizations (name) VALUES ('jeschkies');
+                INSERT INTO repositories (name) VALUES ('unit');
+            """.trimIndent())
+            c.close()
+        }
     }
 }

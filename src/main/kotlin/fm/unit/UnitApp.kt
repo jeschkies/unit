@@ -128,13 +128,20 @@ fun Application.module() {
         route("/reports/{organization}/{repository}/{prefix}") {
 
             get {
-                val organization = call.parameters["organization"]
-                val repository = call.parameters["repository"]
+                val organization = call.parameters["organization"] ?: ""
+                val repository = call.parameters["repository"] ?: ""
                 val prefix = call.parameters["prefix"]
 
-                val reports = emptyList<Report>()// TODO(karsten): fetch from database
-                val summary = ProjectSummary(reports)
-                call.respondText(template(summary), ContentType.Text.Html)
+                val org_id = jdbi.onDemand<Organizations>().get(organization)
+                val repo_id = jdbi.onDemand<Repositories>().get(repository)
+
+                if (org_id == null || repo_id == null) {
+                    call.respond(HttpStatusCode.NotFound)
+                } else {
+                    val reports = emptyList<Report>()// TODO(karsten): fetch from database
+                    val summary = ProjectSummary(reports)
+                    call.respondText(template(summary), ContentType.Text.Html)
+                }
             }
 
             post {
