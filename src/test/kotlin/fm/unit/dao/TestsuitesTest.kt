@@ -1,15 +1,12 @@
 package fm.unit.dao
 
 import fm.unit.kotlintest.listeners.JdbiFixture
-import fm.unit.model.Payload
 import fm.unit.model.Testsuite
-import fm.unit.model.TestsuiteSummary
 import io.kotlintest.extensions.TestListener
 import io.kotlintest.matchers.collections.shouldContain
 import io.kotlintest.specs.StringSpec
 import java.io.File
 import org.jdbi.v3.sqlobject.kotlin.onDemand
-
 
 
 class TestsuitesTest: StringSpec() {
@@ -33,10 +30,10 @@ class TestsuitesTest: StringSpec() {
 
             val suite_dao = db.jdbi.onDemand<Testsuites>()
             val xmlFile = File("fixtures/exception.xml").bufferedReader().use { it.readText() }
-            suite_dao.insert(report_id, Testsuite("exception.xml", Payload(xmlFile)))
+            suite_dao.insert(report_id, Testsuite("exception.xml", Testsuite.Payload(xmlFile)))
 
             val summaries = suite_dao.summaries()
-            summaries shouldContain(TestsuiteSummary(3, 1))
+            summaries shouldContain(Testsuite.Summary(3, 1))
         }
     }
 }

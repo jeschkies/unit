@@ -6,11 +6,9 @@ import fm.unit.dao.Organizations
 import fm.unit.dao.PayloadArgumentFactory
 import fm.unit.dao.Reports
 import fm.unit.dao.Repositories
-import fm.unit.model.Payload
 import fm.unit.model.ProjectSummary
 import fm.unit.model.Report
 import fm.unit.model.Testsuite
-import fm.unit.model.TestsuiteSummary
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -49,9 +47,9 @@ fun Application.module() {
      * For DEBUGging purposes only. Method generates a list of fake reports to be able to test template generation locally
      */
     fun testReports(random: Random = Random(1)): List<Report> {
-        fun summaries(random: Random): List<TestsuiteSummary> {
+        fun summaries(random: Random): List<Testsuite.Summary> {
             return (0..random.nextInt(10)).map {
-                TestsuiteSummary(tests = random.nextInt(1, 10), errors = random.nextInt(2))
+                Testsuite.Summary(tests = random.nextInt(1, 10), errors = random.nextInt(2))
             }
         }
 
@@ -97,7 +95,7 @@ fun Application.module() {
                         commit = part.value
                     }
                 is PartData.FileItem -> {
-                    val payload = Payload(part.streamProvider().bufferedReader().use { it.readText() })
+                    val payload = Testsuite.Payload(part.streamProvider().bufferedReader().use { it.readText() })
                     val suite = Testsuite( part.originalFileName ?: "", payload)
                     suites.add(suite)
                 }
@@ -134,9 +132,9 @@ fun Application.module() {
         route("/reports/{organization}/{repository}/{prefix}") {
 
             get {
-                val organization = call.parameters["organization"] ?: ""
-                val repository = call.parameters["repository"] ?: ""
-                val prefix = call.parameters["prefix"]
+                val organization = call.parameters["organization"]!!
+                val repository = call.parameters["repository"]!!
+                val prefix = call.parameters["prefix"]!!
 
                 val orgId = jdbi.onDemand<Organizations>().get(organization)
                 val repoId = jdbi.onDemand<Repositories>().get(repository)
@@ -151,9 +149,9 @@ fun Application.module() {
             }
 
             post {
-                val organization = call.parameters["organization"] ?: ""
-                val repository = call.parameters["repository"] ?: ""
-                val prefix = call.parameters["prefix"] ?: ""
+                val organization = call.parameters["organization"]!!
+                val repository = call.parameters["repository"]!!
+                val prefix = call.parameters["prefix"]!!
 
                 val orgId = jdbi.onDemand<Organizations>().get(organization)
                 val repoId = jdbi.onDemand<Repositories>().get(repository)

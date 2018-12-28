@@ -1,8 +1,6 @@
 package fm.unit.dao
 
-import fm.unit.model.Payload
 import fm.unit.model.Testsuite
-import fm.unit.model.TestsuiteSummary
 import org.jdbi.v3.core.argument.AbstractArgumentFactory
 import org.jdbi.v3.core.argument.Argument
 import org.jdbi.v3.core.config.ConfigRegistry
@@ -16,8 +14,8 @@ import java.sql.PreparedStatement
 import java.sql.Types
 
 
-object PayloadArgumentFactory : AbstractArgumentFactory<Payload>(Types.OTHER) {
-    class PayloadArgument(val value: Payload) : Argument {
+object PayloadArgumentFactory : AbstractArgumentFactory<Testsuite.Payload>(Types.OTHER) {
+    class PayloadArgument(val value: Testsuite.Payload) : Argument {
         override fun apply(position: Int, statement: PreparedStatement, ctx: StatementContext?) {
             val xmlObject = PGobject()
             xmlObject.type = "xml"
@@ -26,7 +24,7 @@ object PayloadArgumentFactory : AbstractArgumentFactory<Payload>(Types.OTHER) {
         }
     }
 
-    override fun build(value: Payload, config: ConfigRegistry): Argument {
+    override fun build(value: Testsuite.Payload, config: ConfigRegistry): Argument {
         return PayloadArgument(value)
     }
 }
@@ -37,7 +35,7 @@ interface Testsuites {
      * Insert a testsuite, ie JUnit XML file, for a report.
      *
      * @param report_id The report this testsuite is for.
-     * @param testsuite The testsuite JUnit [[fm.unit.model.Payload]].
+     * @param testsuite The testsuite JUnit [[fm.unit.model.Testsuite.Payload]].
      * @return The id of the inserted testsuite.
      */
     @SqlUpdate("""
@@ -57,5 +55,5 @@ interface Testsuites {
                (xpath('count(//failure)', payload))[1] AS errors
         FROM testsuites
     """)
-    fun summaries(): List<TestsuiteSummary>
+    fun summaries(): List<Testsuite.Summary>
 }
