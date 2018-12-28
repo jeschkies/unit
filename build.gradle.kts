@@ -59,6 +59,7 @@ dependencies {
     compile(kotlin("stdlib"))
     compile(kotlin("stdlib-jdk8"))
     compile(kotlin("reflect"))
+
     compile("ch.qos.logback:logback-classic:$logback_version")
     compile("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson_version")
     compile( "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson_version")
@@ -66,11 +67,11 @@ dependencies {
     compile("io.github.microutils:kotlin-logging:$kotlin_logging_version")
     compile("io.ktor:ktor-server-netty:$ktor_version")
     compile("io.ktor:ktor-jackson:$ktor_version")
+    compile("io.ktor:ktor-velocity:$ktor_version")
     compile("org.jdbi:jdbi3-kotlin-sqlobject:$jdbi3_kotlin")
     compile("org.jdbi:jdbi3-postgres:$jdbi3_kotlin")
     compile("org.jdbi:jdbi3-sqlobject:$jdbi3_kotlin")
     compile("org.postgresql:postgresql:$postgresql_version")
-    compile("org.apache.velocity:velocity-engine-core:$velocity_engine_core")
 
     testCompile("com.opentable.components:otj-pg-embedded:$otj_pg_embedded")
     testCompile("io.kotlintest:kotlintest-runner-junit5:$kotlintest_runner_junit5")

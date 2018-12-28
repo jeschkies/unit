@@ -16,29 +16,27 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.PartData
 import io.ktor.http.content.files
 import io.ktor.http.content.static
-import io.ktor.http.withCharset
 import io.ktor.jackson.jackson
 import io.ktor.request.receiveMultipart
 import io.ktor.response.respond
 import io.ktor.response.respondText
-import io.ktor.response.respondTextWriter
 import io.ktor.routing.Routing
 import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.route
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import org.apache.velocity.VelocityContext
-import org.apache.velocity.app.Velocity
+import io.ktor.velocity.Velocity
+import io.ktor.velocity.VelocityContent
+import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader
 import org.jdbi.v3.core.Jdbi
-import java.io.StringWriter
 import kotlin.random.Random
 
 
 fun Application.module() {
 
     /**
-     * For DEBUGing purposes only. Method generates a list of fake reports to be able to test template generation locally
+     * For DEBUGging purposes only. Method generates a list of fake reports to be able to test template generation locally
      */
     fun testReports(random: Random = Random(1)): List<Report> {
         fun summaries(random: Random): List<TestsuiteSummary> {
@@ -50,15 +48,10 @@ fun Application.module() {
         return listOf("Fake News!", "Cake Is a Lie", "Magic Unicorn").map { Report(it, summaries(random)) }
     }
 
-    fun template(summary: ProjectSummary): String {
-        val t = Velocity.getTemplate("templates/reports/summary.vm")
-
-        val context = VelocityContext()
-        context.put("summary", summary)
-
-        val writer = StringWriter()
-        t.merge(context, writer)
-        return writer.toString()
+    fun template(summary: ProjectSummary): VelocityContent {
+        val template = "templates/reports/summary.vm"
+        val model = mutableMapOf<String, Any>("summary" to summary)
+        return VelocityContent(template, model)
     }
 
     /**
@@ -76,11 +69,6 @@ fun Application.module() {
     val jdbi = Jdbi.create(ds)
     jdbi.installPlugins()
 
-    /**
-     * Velocity setup. Additional settings are provided via `velocity.properties` file.
-     */
-    Velocity.init("velocity.properties")
-
     install(DefaultHeaders)
     install(CallLogging)
     install(ContentNegotiation) {
@@ -88,9 +76,19 @@ fun Application.module() {
             registerModule(JavaTimeModule()) // support java.time.* types
         }
     }
+    install(Velocity) { // this: VelocityEngine
+        // Resource loader
+        setProperty("resource.loader", "class");
+        addProperty("class.resource.loader.class", ClasspathResourceLoader::class.java.name)
+        // Strictness settings
+        addProperty("runtime.log.invalid.references", "true")
+        addProperty("runtime.references.strict", "true")
+        addProperty("runtime.strict.math", "true")
+        init()
+    }
     install(Routing) {
         get("/") {
-            call.respondText("Put your JUnit files to work for greater good!", ContentType.Text.Html)
+            call.respondText("<h1>Put your JUnit files to work for greater good!</h1>", ContentType.Text.Html)
         }
         static("/static") {
             files("static")
@@ -102,7 +100,7 @@ fun Application.module() {
 
                 val reports = testReports()// TODO(karsten): fetch from database
                 val summary = ProjectSummary(reports)
-                call.respondText(template(summary), ContentType.Text.Html.withCharset(Charsets.UTF_8))
+                call.respond(template(summary))
             }
             post("{key...}") {
                 val key = call.parameters.getAll("key")?.joinToString("/") ?: ""
