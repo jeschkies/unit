@@ -16,7 +16,6 @@ val jdbi3_kotlin: String by project
 val otj_pg_embedded: String by project
 val kotlintest_runner_junit5: String by project
 val flywaydb: String by project
-val velocity_engine_core: String by project
 
 buildscript {
     repositories {
