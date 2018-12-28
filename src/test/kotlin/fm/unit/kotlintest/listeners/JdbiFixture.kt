@@ -1,7 +1,9 @@
 package fm.unit.kotlintest.listeners
 
 import com.opentable.db.postgres.embedded.EmbeddedPostgres
+import fm.unit.dao.PayloadArgumentFactory
 import io.kotlintest.Description
+import io.kotlintest.Spec
 import io.kotlintest.TestResult
 import io.kotlintest.extensions.TestListener
 import org.flywaydb.core.Flyway
@@ -20,19 +22,21 @@ class JdbiFixture : TestListener {
     val flyway = Flyway.configure().dataSource(dataSource).load()
     val jdbi: Jdbi = Jdbi.create(dataSource)
 
-    override fun beforeTest(description: Description): Unit {
+    override fun beforeSpec(description: Description, spec: Spec) {
         flyway.migrate()
         jdbi.installPlugins()
+        jdbi.registerArgument(PayloadArgumentFactory)
+
+        super.beforeSpec(description, spec)
     }
 
-    override fun afterTest(description: Description, result: TestResult) {
+    override fun afterSpec(description: Description, spec: Spec) {
         try {
             epg.close()
         } catch (e: IOException) {
             throw AssertionError(e)
         }
 
-        super.afterTest(description, result)
+        super.afterSpec(description, spec)
     }
-
 }
