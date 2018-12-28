@@ -5,6 +5,7 @@ import io.kotlintest.matchers.collections.shouldHaveSize
 import io.kotlintest.specs.StringSpec
 import org.jdbi.v3.sqlobject.kotlin.onDemand
 import fm.unit.kotlintest.listeners.JdbiFixture
+import io.kotlintest.shouldBe
 import org.jdbi.v3.sqlobject.kotlin.attach
 
 class ReportsTest: StringSpec() {
@@ -18,8 +19,14 @@ class ReportsTest: StringSpec() {
             val org_dao = db.jdbi.onDemand<Organizations>()
             val org_id = org_dao.insert("jeschkies")
 
+            org_dao.get("unknown") shouldBe (null)
+            org_dao.get("jeschkies") shouldBe (org_id)
+
             val repo_dao = db.jdbi.onDemand<Repositories>()
             val repo_id = repo_dao.insert("unit")
+
+            repo_dao.get("unknown") shouldBe (null)
+            repo_dao.get("unit") shouldBe (repo_id)
 
             val dao = db.jdbi.onDemand<Reports>()
 

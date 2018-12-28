@@ -76,7 +76,7 @@ fun Application.module() {
     val db_name = System.getenv("POSTGRES_DATABASE") ?: "unitfm"
     val db_url = "jdbc:postgresql://localhost:5432/$db_name"
 
-    // TODO(karsten): Fail fast when connection to databse cannot be established.
+    // TODO(karsten): Fail fast when connection to database cannot be established.
     val ds = HikariDataSource()
     ds.jdbcUrl = db_url
     ds.username = db_user
@@ -138,21 +138,25 @@ fun Application.module() {
             }
 
             post {
-                val organization = call.parameters["organization"]
-                val repository = call.parameters["repository"]
+                val organization = call.parameters["organization"] ?: ""
+                val repository = call.parameters["repository"] ?: ""
                 val prefix = call.parameters["prefix"] ?: ""
 
-                // TODO(karsten): Get ids by name.
-                val org_id = jdbi.onDemand<Organizations>().insert("jeschkies")
-                val repo_id = jdbi.onDemand<Repositories>().insert("unit")
+                val org_id = jdbi.onDemand<Organizations>().get(organization)
+                val repo_id = jdbi.onDemand<Repositories>().get(repository)
 
-                val multipart = call.receiveMultipart()
-                val (commit_hash, suites) = readPostedReport(multipart)
-                runBlocking {
-                    jdbi.onDemand<Reports>().insert(org_id, repo_id, prefix, commit_hash, suites)
+                if (org_id == null || repo_id == null) {
+                    call.respond(HttpStatusCode.NotFound)
+                } else {
+
+                    val multipart = call.receiveMultipart()
+                    val (commit_hash, suites) = readPostedReport(multipart)
+                    runBlocking {
+                        jdbi.onDemand<Reports>().insert(org_id, repo_id, prefix, commit_hash, suites)
+                    }
+
+                    call.respond(HttpStatusCode.Created)
                 }
-
-                call.respond(HttpStatusCode.Created)
             }
         }
     }

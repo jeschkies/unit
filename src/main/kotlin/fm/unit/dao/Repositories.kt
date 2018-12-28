@@ -1,6 +1,7 @@
 package fm.unit.dao
 
 import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys
+import org.jdbi.v3.sqlobject.statement.SqlQuery
 import org.jdbi.v3.sqlobject.statement.SqlUpdate
 
 interface Repositories {
@@ -14,4 +15,12 @@ interface Repositories {
     @SqlUpdate("INSERT INTO repositories (name) VALUES (?)")
     @GetGeneratedKeys
     fun insert(name: String): Int
+
+    /**
+     * Fetches a repository by name.
+     *
+     * @return Maybe the repository id or null.
+     */
+    @SqlQuery("SELECT repository_id from repositories WHERE name = ?")
+    fun get(name: String): Int?
 }
