@@ -20,17 +20,17 @@ class TestsuitesTest: StringSpec() {
             db.jdbi.registerArgument(PayloadArgumentFactory)
 
             val org_dao = db.jdbi.onDemand<Organizations>()
-            val org_id = org_dao.insert("jeschkies")
+            val org_id = org_dao.create("jeschkies")
 
             val repo_dao = db.jdbi.onDemand<Repositories>()
-            val repo_id = repo_dao.insert("unit")
+            val repo_id = repo_dao.create("unit")
 
             val reports_dao = db.jdbi.onDemand<Reports>()
-            val report_id = reports_dao.insert(org_id, repo_id,"deadbeaf", "/jeschkies/unit")
+            val report_id = reports_dao.create(org_id, repo_id,"deadbeaf", "/jeschkies/unit")
 
             val suite_dao = db.jdbi.onDemand<Testsuites>()
             val xmlFile = File("fixtures/exception.xml").bufferedReader().use { it.readText() }
-            suite_dao.insert(report_id, Testsuite("exception.xml", Testsuite.Payload(xmlFile)))
+            suite_dao.create(report_id, Testsuite("exception.xml", Testsuite.Payload(xmlFile)))
 
             val summaries = suite_dao.summaries()
             summaries shouldContain(Testsuite.Summary(3, 1))

@@ -43,7 +43,7 @@ interface Testsuites {
         VALUES (:report_id, :testsuite.filename, :testsuite.payload)
     """)
     @GetGeneratedKeys
-    fun insert(@Bind("report_id") report_id: Int, @BindBean("testsuite") testsuite: Testsuite): Int
+    fun create(@Bind("report_id") report_id: Int, @BindBean("testsuite") testsuite: Testsuite): Int
 
     /**
      * Lists all testsuites.

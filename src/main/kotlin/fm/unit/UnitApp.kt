@@ -129,15 +129,15 @@ fun Application.module() {
         static("/static") {
             files("static")
         }
-        route("/reports/{organization}/{repository}/{prefix}") {
+        route("/{organization}/{repository}/{prefix}/reports") {
 
             get {
                 val organization = call.parameters["organization"]!!
                 val repository = call.parameters["repository"]!!
                 val prefix = call.parameters["prefix"]!!
 
-                val orgId = jdbi.onDemand<Organizations>().get(organization)
-                val repoId = jdbi.onDemand<Repositories>().get(repository)
+                val orgId = jdbi.onDemand<Organizations>().read(organization)
+                val repoId = jdbi.onDemand<Repositories>().read(repository)
 
                 if (orgId == null || repoId == null) {
                     call.respond(HttpStatusCode.NotFound)
@@ -153,8 +153,8 @@ fun Application.module() {
                 val repository = call.parameters["repository"]!!
                 val prefix = call.parameters["prefix"]!!
 
-                val orgId = jdbi.onDemand<Organizations>().get(organization)
-                val repoId = jdbi.onDemand<Repositories>().get(repository)
+                val orgId = jdbi.onDemand<Organizations>().read(organization)
+                val repoId = jdbi.onDemand<Repositories>().read(repository)
 
                 if (orgId == null || repoId == null) {
                     call.respond(HttpStatusCode.NotFound)
@@ -163,7 +163,7 @@ fun Application.module() {
                     val multipart = call.receiveMultipart()
                     val (commit_hash, suites) = readPostedReport(multipart)
                     runBlocking {
-                        jdbi.onDemand<Reports>().insert(orgId, repoId, prefix, commit_hash, suites)
+                        jdbi.onDemand<Reports>().create(orgId, repoId, prefix, commit_hash, suites)
                     }
 
                     call.respond(HttpStatusCode.Created)

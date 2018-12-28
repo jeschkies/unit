@@ -14,6 +14,6 @@ CREATE TABLE reports (
 CREATE TABLE testsuites (
     testsuite_id SERIAL PRIMARY KEY,
     report_id INTEGER REFERENCES reports(report_id),
-    filename text NOT NULL,
+    filename text,
     payload xml NOT NULL
 )

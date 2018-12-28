@@ -13,7 +13,7 @@ interface Organizations {
      */
     @SqlUpdate("INSERT INTO organizations (name) VALUES (?)")
     @GetGeneratedKeys
-    fun insert(name: String): Int
+    fun create(name: String): Int
 
     /**
      * Fetches an organization by name.
@@ -21,5 +21,5 @@ interface Organizations {
      * @return Maybe the organization id or null.
      */
     @SqlQuery("SELECT organization_id from organizations WHERE name = ?")
-    fun get(name: String): Int?
+    fun read(name: String): Int?
 }

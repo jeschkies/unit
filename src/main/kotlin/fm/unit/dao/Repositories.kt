@@ -14,7 +14,7 @@ interface Repositories {
      */
     @SqlUpdate("INSERT INTO repositories (name) VALUES (?)")
     @GetGeneratedKeys
-    fun insert(name: String): Int
+    fun create(name: String): Int
 
     /**
      * Fetches a repository by name.
@@ -22,5 +22,5 @@ interface Repositories {
      * @return Maybe the repository id or null.
      */
     @SqlQuery("SELECT repository_id from repositories WHERE name = ?")
-    fun get(name: String): Int?
+    fun read(name: String): Int?
 }
