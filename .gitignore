@@ -6,4 +6,8 @@
 .idea
 *.iml
 local.properties
-out/
+/out
+/build
+*.iml
+*.ipr
+*.iws

@@ -1,0 +1,24 @@
+## A template for repository summary.
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="/static/style.css">
+    </head>
+    <body>
+
+        <h1>Test reports for project jeschkies/unit</h1>
+
+        <svg width="100%" height="100%">
+            #foreach($report in $summary.reports)
+                #set($outcome = "#if($report.errors == 0)success#{else}failure#end")
+                #set($x = $foreach.count * 10)
+
+                <g class="build" x="10">
+                    <rect x="$x" y="10" width="10" height="100" class="$outcome buildBar"/>
+                    <text x="$x" y="10" class="buildLabel">Build $foreach.count</text>
+                </g>
+            #end
+
+        </svg>
+    </body>
+</html>
