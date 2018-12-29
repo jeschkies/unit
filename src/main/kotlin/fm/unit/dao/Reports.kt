@@ -1,5 +1,6 @@
 package fm.unit.dao
 
+import fm.unit.model.Report
 import fm.unit.model.Testsuite
 import org.jdbi.v3.sqlobject.CreateSqlObject
 import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys
@@ -48,8 +49,23 @@ interface Reports {
         return report_id
     }
 
+    @SqlQuery("SELECT report_id, prefix FROM reports")
+    fun readReports(): List<Int>
 
-    // TODO(karsten): join with testsuites.
-    @SqlQuery("SELECT (commit_hash) FROM reports ORDER BY report_id")
-    fun reports(): List<String>
+
+    // TODO(karsten): map to Report.Summary
+    data class Foo(val report_id: Int, val tests: Int, val errors: Int)
+    @SqlQuery("""
+        SELECT reports.report_id,
+               SUM((xpath('count(//testcase)', payload))[1]::text::integer) AS tests,
+               SUM((xpath('count(//failure)', payload))[1]::text::integer) AS errors
+        FROM reports
+        LEFT JOIN testsuites ON reports.report_id = testsuites.report_id
+        WHERE reports.prefix = :prefix
+            AND reports.organization_id = :organization_id
+            AND reports.repository_id = :repository_id
+        GROUP BY reports.report_id
+        ORDER BY reports.report_id
+    """)
+    fun readReportSummaries(organization_id: Int, repository_id: Int, prefix: String): List<Foo>
 }
