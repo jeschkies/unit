@@ -53,12 +53,10 @@ interface Reports {
     fun readReports(): List<Int>
 
 
-    // TODO(karsten): map to Report.Summary
-    data class Foo(val report_id: Int, val tests: Int, val errors: Int)
     @SqlQuery("""
         SELECT reports.report_id,
-               SUM((xpath('count(//testcase)', payload))[1]::text::integer) AS tests,
-               SUM((xpath('count(//failure)', payload))[1]::text::integer) AS errors
+               SUM((xpath('count(//testcase)', payload))[1]::text::integer) AS ts_tests,
+               SUM((xpath('count(//failure)', payload))[1]::text::integer) AS ts_errors
         FROM reports
         LEFT JOIN testsuites ON reports.report_id = testsuites.report_id
         WHERE reports.prefix = :prefix
@@ -67,5 +65,5 @@ interface Reports {
         GROUP BY reports.report_id
         ORDER BY reports.report_id
     """)
-    fun readReportSummaries(organization_id: Int, repository_id: Int, prefix: String): List<Foo>
+    fun readReportSummaries(organization_id: Int, repository_id: Int, prefix: String): List<Report.Summary>
 }

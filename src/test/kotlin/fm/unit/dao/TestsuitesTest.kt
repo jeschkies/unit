@@ -39,28 +39,5 @@ class TestsuitesTest: StringSpec() {
             val summaries = suiteDao.summaries()
             summaries shouldContain(Testsuite.Summary(3, 1))
         }
-
-        "Query summary for one report" {
-            // Given
-            val org_id = db.jdbi.onDemand<Organizations>().create("jeschkies")
-            val repo_id = db.jdbi.onDemand<Repositories>().create("unit")
-
-            val reportsDao = db.jdbi.onDemand<Reports>()
-            val suites = listOf(
-                    Testsuite("exception.xml", Testsuite.Payload(exceptionXml)),
-                    Testsuite("pas.xml", Testsuite.Payload(passXml))
-                )
-            val report_id = reportsDao.create(org_id, repo_id, "deadbeaf", "system-test", suites)
-            val unknown_report_id = 42
-
-            // When
-            val suiteDao = db.jdbi.onDemand<Testsuites>()
-            val summary = suiteDao.readSummary(report_id)
-
-            // Then
-            // TODO(karsten): Fails. Returns Summary(0, 0) instead of null.
-            //suiteDao.readSummary(unknown_report_id) shouldBe(null)
-            summary shouldBe (Testsuite.Summary(6, 1))
-        }
     }
 }

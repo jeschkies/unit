@@ -129,8 +129,9 @@ fun Application.module() {
                 if (orgId == null || repoId == null) {
                     call.respond(HttpStatusCode.NotFound)
                 } else {
-                    //val reportSummaries = runBlocking { jdbi.onDemand<Reports>().readReportSummaries(prefix) }
-                    val reportSummaries = emptyList<Report.Summary>()
+                    val reportSummaries = runBlocking {
+                        jdbi.onDemand<Reports>().readReportSummaries(orgId, repoId, prefix)
+                    }
                     val summary = Project.Summary(reportSummaries)
                     call.respond(template(summary))
                 }

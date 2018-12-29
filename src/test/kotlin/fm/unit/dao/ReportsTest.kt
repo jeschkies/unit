@@ -62,11 +62,9 @@ class ReportsTest: StringSpec() {
             val summaries = reportsDao.readReportSummaries(org_id, repo_id, "system-test")
 
             // Then
-            println("Reports: ${reportsDao.readReports()}")
-            println("Summaries: $summaries")
             summaries shouldHaveSize (2)
-            summaries shouldContain (Report.Summary(report_id1, Testsuite.Summary(0, 0)))
-            summaries shouldContain (Report.Summary(report_id2, Testsuite.Summary(0, 0)))
+            summaries shouldContain (Report.Summary(report_id1, Testsuite.Summary(6, 1)))
+            summaries shouldContain (Report.Summary(report_id2, Testsuite.Summary(3, 0)))
         }
     }
 }

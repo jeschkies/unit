@@ -56,18 +56,4 @@ interface Testsuites {
         FROM testsuites
     """)
     fun summaries(): List<Testsuite.Summary>
-
-    /**
-     * Summaries all testsuites, ie JUnit XML files, for one report with given id.
-     *
-     * @param report_id The id of the report which testsuites should be summarized.
-     * @return Null if no testsuite was found or the summary.
-     */
-    @SqlQuery("""
-        SELECT SUM((xpath('count(//testcase)', payload))[1]::text::integer) AS tests,
-               SUM((xpath('count(//failure)', payload))[1]::text::integer) AS errors
-        FROM testsuites
-        WHERE report_id = ?
-    """)
-    fun readSummary(report_id: Int): Testsuite.Summary?
 }
