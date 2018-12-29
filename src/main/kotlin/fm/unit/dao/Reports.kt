@@ -49,10 +49,6 @@ interface Reports {
         return report_id
     }
 
-    @SqlQuery("SELECT report_id, prefix FROM reports")
-    fun readReports(): List<Int>
-
-
     @SqlQuery("""
         SELECT reports.report_id,
                SUM((xpath('count(//testcase)', payload))[1]::text::integer) AS ts_tests,
