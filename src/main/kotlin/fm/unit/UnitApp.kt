@@ -6,6 +6,7 @@ import fm.unit.dao.Organizations
 import fm.unit.dao.PayloadArgumentFactory
 import fm.unit.dao.Reports
 import fm.unit.dao.Repositories
+import fm.unit.dao.Testsuites
 import fm.unit.model.Project
 import fm.unit.model.Report
 import fm.unit.model.Testsuite
@@ -35,6 +36,7 @@ import io.ktor.server.netty.Netty
 import io.ktor.velocity.Velocity
 import io.ktor.velocity.VelocityContent
 import kotlinx.coroutines.runBlocking
+import mu.KotlinLogging
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader
 import org.jdbi.v3.core.Jdbi
 import org.jdbi.v3.sqlobject.kotlin.onDemand
@@ -42,6 +44,7 @@ import kotlin.random.Random
 
 
 fun Application.module() {
+    val logger = KotlinLogging.logger {}
 
     fun template(summary: Project.Summary): VelocityContent {
         val template = "templates/reports/summary.vm"
@@ -132,6 +135,7 @@ fun Application.module() {
                     val reportSummaries = runBlocking {
                         jdbi.onDemand<Reports>().readReportSummaries(orgId, repoId, prefix)
                     }
+                    logger.debug { "Visualizing summaries: $reportSummaries" }
                     val summary = Project.Summary(reportSummaries)
                     call.respond(template(summary))
                 }
@@ -152,7 +156,7 @@ fun Application.module() {
                     val multipart = call.receiveMultipart()
                     val (commit_hash, suites) = readPostedReport(multipart)
                     runBlocking {
-                        jdbi.onDemand<Reports>().create(orgId, repoId, prefix, commit_hash, suites)
+                        jdbi.onDemand<Reports>().create(orgId, repoId, commit_hash, prefix, suites)
                     }
 
                     call.respond(HttpStatusCode.Created)
