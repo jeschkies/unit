@@ -6,7 +6,8 @@ import fm.unit.dao.Organizations
 import fm.unit.dao.PayloadArgumentFactory
 import fm.unit.dao.Reports
 import fm.unit.dao.Repositories
-import fm.unit.model.ProjectSummary
+import fm.unit.dao.Testsuites
+import fm.unit.model.Project
 import fm.unit.model.Report
 import fm.unit.model.Testsuite
 import io.ktor.application.Application
@@ -35,6 +36,7 @@ import io.ktor.server.netty.Netty
 import io.ktor.velocity.Velocity
 import io.ktor.velocity.VelocityContent
 import kotlinx.coroutines.runBlocking
+import mu.KotlinLogging
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader
 import org.jdbi.v3.core.Jdbi
 import org.jdbi.v3.sqlobject.kotlin.onDemand
@@ -42,21 +44,9 @@ import kotlin.random.Random
 
 
 fun Application.module() {
+    val logger = KotlinLogging.logger {}
 
-    /**
-     * For DEBUGging purposes only. Method generates a list of fake reports to be able to test template generation locally
-     */
-    fun testReports(random: Random = Random(1)): List<Report> {
-        fun summaries(random: Random): List<Testsuite.Summary> {
-            return (0..random.nextInt(10)).map {
-                Testsuite.Summary(tests = random.nextInt(1, 10), errors = random.nextInt(2))
-            }
-        }
-
-        return listOf("Fake News!", "Cake Is a Lie", "Magic Unicorn").map { Report(it, summaries(random)) }
-    }
-
-    fun template(summary: ProjectSummary): VelocityContent {
+    fun template(summary: Project.Summary): VelocityContent {
         val template = "templates/reports/summary.vm"
         val model = mutableMapOf<String, Any>("summary" to summary)
         return VelocityContent(template, model)
@@ -136,14 +126,17 @@ fun Application.module() {
                 val repository = call.parameters["repository"]!!
                 val prefix = call.parameters["prefix"]!!
 
-                val orgId = jdbi.onDemand<Organizations>().read(organization)
-                val repoId = jdbi.onDemand<Repositories>().read(repository)
+                val orgId = runBlocking { jdbi.onDemand<Organizations>().read(organization) }
+                val repoId = runBlocking { jdbi.onDemand<Repositories>().read(repository) }
 
                 if (orgId == null || repoId == null) {
                     call.respond(HttpStatusCode.NotFound)
                 } else {
-                    val reports = testReports()// TODO(karsten): fetch from database
-                    val summary = ProjectSummary(reports)
+                    val reportSummaries = runBlocking {
+                        jdbi.onDemand<Reports>().readReportSummaries(orgId, repoId, prefix)
+                    }
+                    logger.debug { "Visualizing summaries: $reportSummaries" }
+                    val summary = Project.Summary(reportSummaries)
                     call.respond(template(summary))
                 }
             }
@@ -163,7 +156,7 @@ fun Application.module() {
                     val multipart = call.receiveMultipart()
                     val (commit_hash, suites) = readPostedReport(multipart)
                     runBlocking {
-                        jdbi.onDemand<Reports>().create(orgId, repoId, prefix, commit_hash, suites)
+                        jdbi.onDemand<Reports>().create(orgId, repoId, commit_hash, prefix, suites)
                     }
 
                     call.respond(HttpStatusCode.Created)

@@ -10,7 +10,7 @@
 
         <svg width="100%" height="100%">
             #foreach($report in $summary.reports)
-                #set($outcome = "#if($report.errors == 0)success#{else}failure#end")
+                #set($outcome = "#if($report.successful)success#{else}failure#end")
                 #set($x = $foreach.count * 10)
 
                 <g class="build" x="10">
